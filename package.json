@@ -25,6 +25,8 @@
     "express": "^5.1.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.20.0",
+    "mongoose": "^8.18.3",
     "morgan": "^1.10.1"
   },
   "devDependencies": {
@@ -32,7 +34,7 @@
     "@types/express": "^5.0.3",
     "@types/helmet": "^0.0.48",
     "@types/morgan": "^1.9.10",
-    "@types/node": "^24.5.2",
+    "@types/node": "^24.6.0",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
