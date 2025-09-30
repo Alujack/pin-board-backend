@@ -5,6 +5,7 @@ import morgan from "morgan";
 import cors from "cors"
 import userRoute from "./routes/user.route";
 import authRoute from "./routes/auth.route";
+import { databaseConnection } from "./config/database.config";
 dotenv.config()
 const app: Express = express()
 const port = process.env.PORT || 3000
@@ -15,7 +16,7 @@ app.use(cors()) //allow cors
 app.use(express.json()) //json parse
 app.use(morgan('combined')); // logging
 app.use(express.urlencoded({ extended: true })); //parse body
-
+databaseConnection()
 
 app.use('/user', userRoute)
 app.use('/auth', authRoute)
