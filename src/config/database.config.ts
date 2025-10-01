@@ -11,11 +11,10 @@ export const databaseConnection = async () => {
     try {
         const connection: Mongoose = await mongoose.connect(MONGODB_URI)
         if(!connection) {
-            console.log("couldn't connect to database ❌❌❌")
+            console.log("couldn't connect to database")
         }
-        console.log("Connect to ", connection.connection.name, "successfully ✅✅✅")
+        console.log("Connect to ", connection.connection.name, "successfully")
     } catch (error: any) {
-            // console.log("an error occurred while connecting to database ❌❌❌", error)
-            throw new Error(`an error occurred while connecting to database ❌❌❌ ${error}`)
+            throw new Error(`an error occurred while connecting to database ${error}`)
     }
 }
