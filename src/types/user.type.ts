@@ -1,13 +1,25 @@
-import { RoleEnum } from "./enums"
+import z from "zod"
 import { Request } from "express"
-export interface IUser {
-    id: string
-    username: string
-    email: string
-    passwrod: string
-    role: RoleEnum
-}
+import { TypeUser, zUser } from "../models/user.model.js"
+import { RoleEnum } from "./enums.js"
+
+
 
 export interface IRequest extends Request {
-    user?: IUser
+    user?: TypeUser 
 }
+
+export const userQuery = z.object({
+    search: z.string().optional(),
+    role: z.enum([RoleEnum.ADMIN, RoleEnum.USER]).optional(),
+})
+
+export type UserQuery = z.infer<typeof userQuery>
+
+const createUser = zUser.pick({
+    role: true,
+    username: true,
+    password: true,
+})
+
+export type TypeCreateUser = z.infer<typeof createUser>
