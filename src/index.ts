@@ -43,57 +43,57 @@ app.post('/api/upload/single', upload.single('image'), async (req, res) => {
 
 
 const handler = new OpenAPIHandler(router, {
-    plugins: [
+  plugins: [
     new CORSPlugin(),
     ...(env == "dev"
-        ? [new OpenAPIReferencePlugin({
-            schemaConverters: [ new ZodToJsonSchemaConverter() ],
-            specGenerateOptions: {
-                servers: [{ url: baseUrl + "/api"}],
-                info: {
-                    title: "Pin Board App",
-                    version: "1.0.0",
-                    description: "API documentation"
-                },
-                security: [
-                    { bearerAuth: [] }
-                ],
-                components: {
-                    securitySchemes: {
-                        bearerAuth: {
-                            type: "http",
-                            scheme: "bearer",
-                            bearerFormat: "JWT"
-                        }
-                    }
-                }
+      ? [new OpenAPIReferencePlugin({
+        schemaConverters: [new ZodToJsonSchemaConverter()],
+        specGenerateOptions: {
+          servers: [{ url: baseUrl + "/api" }],
+          info: {
+            title: "Pin Board App",
+            version: "1.0.0",
+            description: "API documentation"
+          },
+          security: [
+            { bearerAuth: [] }
+          ],
+          components: {
+            securitySchemes: {
+              bearerAuth: {
+                type: "http",
+                scheme: "bearer",
+                bearerFormat: "JWT"
+              }
             }
-        })]
-        : [])
-],
+          }
+        }
+      })]
+      : [])
+  ],
 })
 
 app.use("/api/", async (req: Request, res: Response, next) => {
-    const context = await createContext(req)
-    const request = fetchRequest(req)
-    const { matched, response } = await handler.handle(request, {
-        prefix: "/api",
-        context: context
-    })
-    // if(matched){
-    //     if(response.status >= 500) {
-    //         const res = response.clone()
-    //         const error = await res.json()
-    //         console.warn({
-    //             status: res.status,
-    //             path: req.method,
-    //             method: req.method,
-    //             error,
-    //         })
-    //     }
-    //     return re
-    // }
-    if (matched) {
+  const context = await createContext(req)
+  const request = fetchRequest(req)
+  const { matched, response } = await handler.handle(request, {
+    prefix: "/api",
+    context: context
+  })
+  // if(matched){
+  //     if(response.status >= 500) {
+  //         const res = response.clone()
+  //         const error = await res.json()
+  //         console.warn({
+  //             status: res.status,
+  //             path: req.method,
+  //             method: req.method,
+  //             error,
+  //         })
+  //     }
+  //     return re
+  // }
+  if (matched) {
     res.status(response.status);
     response.headers.forEach((value: any, key: any) => res.setHeader(key, value));
     response.body?.pipeTo(Writable.toWeb(res));
@@ -103,33 +103,33 @@ app.use("/api/", async (req: Request, res: Response, next) => {
 })
 
 const openAPIGenerator = new OpenAPIGenerator({
-    schemaConverters: [ new ZodToJsonSchemaConverter()]
+  schemaConverters: [new ZodToJsonSchemaConverter()]
 })
 
 app.all("/openapi.json", async (context: ExpressContext) => {
-    const spec = await openAPIGenerator.generate(router, {
-        info: {
-            title: "API Playground",
-            version: "1.0.0",
-        },
-        servers: [{ url: "/api"}],
-        security: [{ bearerAuth: []}],
-        components: {
-            securitySchemes: {
-                bearerAuth: {
-                    type: "http",
-                    scheme: "bearer"
-                }
-            }
+  const spec = await openAPIGenerator.generate(router, {
+    info: {
+      title: "API Playground",
+      version: "1.0.0",
+    },
+    servers: [{ url: "/api" }],
+    security: [{ bearerAuth: [] }],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer"
         }
-    })
-    return context.response.json(spec)
+      }
+    }
+  })
+  return context.response.json(spec)
 })
 
 
 
 app.get("/", (req: Request, res: Response) => {
-    res.send("welcome to pinterest api")
+  res.send("welcome to pinterest api")
 })
 
 app.use("/api-docs", swaggerUi.serve, async (req: Request, res: Response) => {
@@ -144,12 +144,18 @@ app.use("/api-docs", swaggerUi.serve, async (req: Request, res: Response) => {
     components: {
       securitySchemes: {
         bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" }
-      }
+      },
     }
   });
-  return res.send(swaggerUi.generateHTML(spec));
+
+  const options = {
+    swaggerOptions: {
+      persistAuthorization: true
+    }
+  };
+  return res.send(swaggerUi.generateHTML(spec, options));
 });
 
 app.listen(port, () => {
-    console.log(`😭😭😭 => app is running on http://localhost:${port}`)
+  console.log(`😭😭😭 => app is running on http://localhost:${port}`)
 })

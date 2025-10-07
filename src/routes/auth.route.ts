@@ -37,5 +37,17 @@ export const authRoute = {
         const id = context.user._id
         console.log("==>",id)
         return await userController.getOneUser(id.toString())
+    }),
+
+    refreshToken: ppr([])
+    .route({
+        path: `${path}/refresh`,
+        method: "POST",
+        tags: tags,
     })
+    .handler( async ({ context }) => {
+        const session = context.session
+        return await authController.refreshSession(session)
+    })
+    
 }

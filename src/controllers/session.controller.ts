@@ -10,7 +10,7 @@ export class SessionController {
     async createSession(userId: string) {
         const id = new ObjectId()
         const expiredAt = dayjs()
-            .add(parseInt(environment.JWT_EXPIRE_DURATION))
+            .add(environment.JWT_EXPIRE_DURATION, "second")
             .toDate()
         const token = generateTokensSession(userId)
         const session = new sessioinModel({
