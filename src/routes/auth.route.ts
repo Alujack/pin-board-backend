@@ -1,5 +1,5 @@
-import { public_permission } from "../config/orpc.js"
-import { authController } from "../controllers/index.js"
+import { ppr, public_permission } from "../config/orpc.js"
+import { authController, userController } from "../controllers/index.js"
 import { loginZod, zSignUp } from "../types/auth.type.js"
 
 const path = "/auth"
@@ -23,8 +23,19 @@ export const authRoute = {
         tags: tags
     })
     .input(zSignUp)
-    .handler( async ({ input }) => {
-        console.log("==>  ", input)
+    .handler(async ({ input }) => {
         return await authController.register(input)
-    } )
+    }),
+
+    profile: ppr([])
+    .route({
+        path: `${path}/me`,
+        method: "GET",
+        tags: tags
+    })
+    .handler( async ({ context }) => {
+        const id = context.user._id
+        console.log("==>",id)
+        return await userController.getOneUser(id.toString())
+    })
 }

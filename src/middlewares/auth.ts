@@ -1,14 +1,12 @@
 import { Response, NextFunction } from "express"
 import { ORPCError } from "@orpc/server"
 import { IRequest } from "../types/user.type.js"
-import { UserController } from "../controllers/user.controller.js"
 import { RoleEnum } from "../types/enums.js"
-import { TypeId } from "../types/common.js"
 import { verifyToken } from "../utils/jwt-token-util.js"
+import { userController } from "../controllers/index.js"
 
 
 
-const userController = new UserController()
 export const auth = async (
     req: IRequest,
     res: Response,
@@ -22,7 +20,7 @@ export const auth = async (
     try {
 
         //specify return type because verify token return any
-        const decode = verifyToken(token) as { id: TypeId, role: string }
+        const decode = verifyToken(token) as { id: string, role: string }
         const user = await userController.getOneUser(decode.id)
         if (!user) {
             throw new ORPCError("UNAUTHORIZED",{ message: "unauthorized"})

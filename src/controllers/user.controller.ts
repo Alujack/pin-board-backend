@@ -1,6 +1,5 @@
 import { ORPCError } from "@orpc/client";
 import { hashPassword } from "../config/password.config.js";
-import { TypeId } from "../types/common.js";
 import { UserQuery, TypeCreateUser } from "../types/user.type.js";
 import { userModel } from "../models/user.model.js";
 import { ObjectId } from "mongodb";
@@ -10,9 +9,23 @@ export class UserController {
         return users
     }
 
-    async getOneUser(id: TypeId) {
+    async getOneUser(id: string) {
         const user = await userModel.findOne({ _id: id }).select("-password")
         return user
+    }
+
+    async getOneForSession(id: string) {
+        const user = await userModel.findOne({ _id: id }).select("username status role").lean()
+        if(!user){
+            throw new ORPCError("USER_NOT_FOUND", { message: "user not found"})
+        }
+        return {
+            _id: user._id.toString(),
+            username: user.username,
+            name: user.username,
+            status: user.status,
+            role: user.role,
+        }
     }
 
     async createUser(data: TypeCreateUser) {
