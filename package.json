@@ -26,6 +26,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@zodyac/zod-mongoose": "^4.2.0",
     "bcrypt": "^5.1.1",
+    "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
     "dayjs": "^1.11.18",
     "dotenv": "^16.6.1",
@@ -35,6 +36,8 @@
     "mongodb": "^6.20.0",
     "mongoose": "^8.18.3",
     "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "multer-storage-cloudinary": "^4.0.0",
     "swagger-ui-express": "^5.0.1",
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.24.6"
@@ -46,12 +49,13 @@
     "@types/express": "^5.0.3",
     "@types/helmet": "^0.0.48",
     "@types/morgan": "^1.9.10",
-    "@types/node": "^24.6.0",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.6.2",
     "@types/swagger-ui-express": "^4.1.8",
     "nodemon": "^3.1.10",
     "orpc": "^0.1.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.3"
   }
 }

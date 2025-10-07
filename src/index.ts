@@ -15,6 +15,9 @@ import { databaseConnection } from "./config/database.config.js";
 import { fetchRequest } from "./config/helper.js";
 import { router } from "./routes/index.js";
 import { createContext, ExpressContext } from "./config/context.js";
+import upload from './config/multer.js';
+import { uploadService } from "./services/media/upload.service.js";
+
 dotenv.config()
 const app: Express = express()
 const port = process.env.PORT || 3000
@@ -27,6 +30,16 @@ app.use(express.json()) //json parse
 app.use(morgan('combined')); // logging
 app.use(express.urlencoded({ extended: true })); //parse body
 databaseConnection()
+
+
+app.post('/api/upload/single', upload.single('image'), async (req, res) => {
+  try {
+    const result = await uploadService.uploadSingle(req.file);
+    res.json({ success: true, message: "Image uploaded successfully", data: result });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 
 const handler = new OpenAPIHandler(router, {
