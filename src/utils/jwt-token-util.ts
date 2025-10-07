@@ -12,6 +12,13 @@ export const generateTokens = (id: TypeId, role: string) => {
     return jwt.sign({ id, role}, jwtSecret, { expiresIn: jwtExpireDuration })
 }
 
+export const generateTokensSession = (id: string) => {
+    if (!jwtExpireDuration){
+        throw new ORPCError("BAD_REQUEST", {message:"missing environment variable"})
+    }
+    return jwt.sign({ id }, jwtSecret, { expiresIn: jwtExpireDuration })
+}
+
 export const verifyToken = (token: string) => {
     return jwt.verify(token, jwtSecret)
 }

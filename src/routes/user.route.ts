@@ -36,7 +36,8 @@ export const userRoute = {
     })
     .input(idZod)
     .handler(async({ input }) => {
-        return await userController.getOneUser(input)
+        const id = new Object(input)
+        return await userController.getOneUser(id.toString())
     })
 }
 

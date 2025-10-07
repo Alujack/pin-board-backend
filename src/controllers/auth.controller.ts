@@ -1,8 +1,7 @@
 import { ORPCError } from "@orpc/client"
 import { verifyPassword } from "../config/password.config.js"
 import { LoginZod, TSignUp } from "../types/auth.type.js"
-import { generateTokens } from "../utils/jwt-token-util.js"
-import { userController } from "./index.js"
+import { sessionController, userController } from "./index.js"
 import { userModel } from "../models/user.model.js"
 import { RoleEnum } from "../types/enums.js"
 
@@ -19,10 +18,10 @@ export class AuthController {
         throw new ORPCError("BAD_REQUEST", "invalid passwrod")
        }
 
-       const token = generateTokens(user.id, user.role)
+       const session = await sessionController.createSession(user._id.toString())
        return {
         user,
-        accessToken: token
+        session
        }
     }
 
@@ -36,7 +35,7 @@ export class AuthController {
             password: data.password,
             role: RoleEnum.USER,
         })
-        console.log(signedUserUp)
+        // console.log(signedUserUp)
         return signedUserUp
     }
 }

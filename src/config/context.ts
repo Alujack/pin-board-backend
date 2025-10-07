@@ -4,7 +4,7 @@ export type ExpressContext = {
     response: Response
 }
 
-export async function createContext(req: Request, res: Response){
+export async function createContext(req: Request){
     const authorization = req.headers['authorization']
     const token = authorization?.replace("Bearer ", "")
     if(!token){
