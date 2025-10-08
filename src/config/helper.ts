@@ -14,6 +14,7 @@ export function fetchRequest(req: ExpressRequest): Request {
     return new Request(url.toString(), {
         method: req.method,
         headers: req.headers as any,
+// oxlint-disable-next-line no-invalid-fetch-options
         body,
     });
 }
