@@ -1,5 +1,6 @@
 import { boardModel } from "../models/board.model.js";
 import { pinModel } from "../models/pin.model.js";
+import { mediaService } from "../services/media/media.service.js";
 import { 
   createBoardRequestSchema, 
   updateBoardRequestSchema,
@@ -152,11 +153,22 @@ export const boardController = {
         .sort({ createdAt: -1 })
         .limit(20); // Limit to recent 20 pins
 
+      // Fetch media for each pin
+      const pinsWithMedia = await Promise.all(
+        pins.map(async (pin) => {
+          const media = await mediaService.getMediaByPinId(pin._id.toString());
+          return {
+            ...pin.toObject(),
+            media
+          };
+        })
+      );
+
       const pinCount = await pinModel.countDocuments({ board: id });
 
       const boardWithPins = {
         ...board.toObject(),
-        pins,
+        pins: pinsWithMedia,
         pinCount,
       };
 

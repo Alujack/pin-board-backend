@@ -16,6 +16,15 @@ export const updatePinRequestSchema = z.object({
   link_url: z.string().url("Invalid URL format").optional(),
 });
 
+// Media item schema
+export const mediaItemSchema = z.object({
+  media_url: z.string(),
+  thumbnail_url: z.string().optional(),
+  public_id: z.string(),
+  format: z.string(),
+  resource_type: z.string(),
+});
+
 // Response types
 export const pinResponseSchema = zPin.extend({
   _id: z.string(),
@@ -40,16 +49,13 @@ export const pinResponseSchema = zPin.extend({
     clicks: z.number().default(0),
   }).optional(),
   thumbnail_url: z.string().optional(),
+  media: z.array(mediaItemSchema).optional(),
 });
 
+
+
 // Media upload response
-export const mediaUploadResponseSchema = z.object({
-  media_url: z.string(),
-  thumbnail_url: z.string().optional(),
-  public_id: z.string(),
-  format: z.string(),
-  resource_type: z.string(),
-});
+export const mediaUploadResponseSchema = mediaItemSchema;
 
 // Pin creation response
 export const createPinResponseSchema = z.object({
@@ -91,6 +97,7 @@ export const assignTagsRequestSchema = z.object({
 export type CreatePinRequest = z.infer<typeof createPinRequestSchema>;
 export type UpdatePinRequest = z.infer<typeof updatePinRequestSchema>;
 export type PinResponse = z.infer<typeof pinResponseSchema>;
+export type MediaItem = z.infer<typeof mediaItemSchema>;
 export type MediaUploadResponse = z.infer<typeof mediaUploadResponseSchema>;
 export type CreatePinResponse = z.infer<typeof createPinResponseSchema>;
 export type PinListResponse = z.infer<typeof pinListResponseSchema>;
