@@ -129,7 +129,8 @@ app.get("/", (req: Request, res: Response) => {
   res.send("welcome to pinterest api")
 })
 
-app.use("/api-docs", swaggerUi.serve, async (req: Request, res: Response) => {
+app.use("/api-docs", swaggerUi.serve);
+app.get("/api-docs", async (req: Request, res: Response) => {
   const spec = await openAPIGenerator.generate(router, {
     info: {
       title: "Pin Board App",
