@@ -1,44 +1,73 @@
-import { Response, NextFunction } from "express"
-import { ORPCError } from "@orpc/server"
-import { IRequest } from "../types/user.type.js"
-import { RoleEnum } from "../types/enums.js"
-import { verifyToken } from "../utils/jwt-token-util.js"
-import { userController } from "../controllers/index.js"
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import { environment } from "../environment.js";
+import { userModel } from "../models/user.model.js";
 
-
-
-export const auth = async (
-    req: IRequest,
-    res: Response,
-    next: NextFunction
-) => {
-    const token = req.headers['authorization']?.replace('Bearer ', '')
-    if (!token) {
-        res.status(401).json({ msg: "token is missing" })
-        return
+// Extend Request interface to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        _id: string;
+        username: string;
+        role: string;
+      };
     }
-    try {
-
-        //specify return type because verify token return any
-        const decode = verifyToken(token) as { id: string, role: string }
-        const user = await userController.getOneUser(decode.id)
-        if (!user) {
-            throw new ORPCError("UNAUTHORIZED",{ message: "unauthorized"})
-        }
-        req.user = user
-        next()
-    } catch (err: any) {
-        res.status(500).json({ msg: `Internal Server Error ${err}` })
-    }
+  }
 }
 
-export const permission = async (roles: RoleEnum) => {
-    return (req: IRequest, res: Response, next: NextFunction) => {
-        if (!roles.includes(req.user?.role as string)) {
-            return res.status(403).json({
-                msg: "Forbibden"
-            })
-        }
-        next()
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        success: false,
+        message: "Access token required"
+      });
     }
-}
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    
+    // Verify JWT token
+    const decoded = jwt.verify(token, environment.JWT_SECRET) as any;
+    
+    // Get user from database
+    const user = await userModel.findById(decoded.id).select("username role");
+    
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Add user to request object
+    req.user = {
+      _id: user._id.toString(),
+      username: user.username,
+      role: user.role
+    };
+
+    next();
+  } catch (error: any) {
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token"
+      });
+    }
+    
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: "Token expired"
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Authentication error"
+    });
+  }
+};
