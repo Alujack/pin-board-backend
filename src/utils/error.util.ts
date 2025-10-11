@@ -48,7 +48,7 @@ export class ConflictError extends AppError {
 }
 
 // Convert AppError to ORPCError
-export const toORPCError = (error: AppError): ORPCError => {
+export const toORPCError = (error: AppError): ORPCError<string, { message: string }> => {
   const errorMap: Record<number, string> = {
     400: "BAD_REQUEST",
     401: "UNAUTHORIZED", 
@@ -64,7 +64,7 @@ export const toORPCError = (error: AppError): ORPCError => {
 };
 
 // Global error handler
-export const handleError = (error: any): ORPCError => {
+export const handleError = (error: any): ORPCError<string, { message: string }> => {
   if (error instanceof AppError) {
     return toORPCError(error);
   }

@@ -105,7 +105,7 @@ export const mediaService = {
         return true;
       }
 
-      const publicIds = result.resources.map(resource => resource.public_id);
+      const publicIds = result.resources.map((resource:any) => resource.public_id);
       
       await cloudinary.api.delete_resources(publicIds);
       return true;

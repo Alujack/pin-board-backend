@@ -36,7 +36,7 @@ export const authRoute = {
     .handler( async ({ context }) => {
         const id = context.user._id
         console.log("==>",id)
-        return await userController.getOneUser(id.toString())
+        return await userController.getOneUser(id?.toString() || "")
     }),
 
     refreshToken: ppr([])

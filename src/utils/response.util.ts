@@ -1,3 +1,9 @@
+export interface ApiResponse<T = any> { 
+  success: boolean; 
+  message: string; 
+  data?: T;
+  error?: string; 
+  pagination?: PaginationInfo; }
 export interface ApiResponse<T = any> {
   success: boolean;
   message: string;
@@ -5,6 +11,19 @@ export interface ApiResponse<T = any> {
   error?: string;
   pagination?: PaginationInfo;
 }
+export interface ApiResponseWithData<T = any> {
+  success: true;
+  message: string;
+  data: T;
+  pagination?: PaginationInfo;
+}
+
+export interface ApiResponseWithoutData {
+  success: false;
+  message: string;
+  error?: string;
+}
+
 
 export interface PaginationInfo {
   page: number;
@@ -14,7 +33,7 @@ export interface PaginationInfo {
 }
 
 export class ResponseUtil {
-  static success<T>(data: T, message: string = 'Success'): ApiResponse<T> {
+  static success<T>(data: T, message: string = 'Success'): ApiResponseWithData<T> {
     return {
       success: true,
       message,
@@ -26,7 +45,7 @@ export class ResponseUtil {
     data: T[],
     pagination: PaginationInfo,
     message: string = 'Success'
-  ): ApiResponse<T[]> {
+  ): ApiResponseWithData<T[]> {
     return {
       success: true,
       message,
@@ -43,7 +62,7 @@ export class ResponseUtil {
     };
   }
 
-  static created<T>(data: T, message: string = 'Resource created successfully'): ApiResponse<T> {
+  static created<T>(data: T, message: string = 'Resource created successfully'): ApiResponseWithData<T> {
     return {
       success: true,
       message,
@@ -51,7 +70,7 @@ export class ResponseUtil {
     };
   }
 
-  static updated<T>(data: T, message: string = 'Resource updated successfully'): ApiResponse<T> {
+  static updated<T>(data: T, message: string = 'Resource updated successfully'): ApiResponseWithData<T> {
     return {
       success: true,
       message,
