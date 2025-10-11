@@ -16,7 +16,8 @@ import { fetchRequest } from "./config/helper.js";
 import { router } from "./routes/index.js";
 import { createContext, ExpressContext } from "./config/context.js";
 import upload from './config/multer.js';
-import { uploadService } from "./services/media/upload.service.js";
+import { uploadController } from "./controllers/upload.controller.js";
+import { authMiddleware } from "./middlewares/auth.js";
 
 dotenv.config()
 const app: Express = express()
@@ -32,14 +33,10 @@ app.use(express.urlencoded({ extended: true })); //parse body
 databaseConnection()
 
 
-app.post('/api/upload/single', upload.single('image'), async (req, res) => {
-  try {
-    const result = await uploadService.uploadSingle(req.file);
-    res.json({ success: true, message: "Image uploaded successfully", data: result });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
+// Upload endpoints
+app.post('/api/upload/single', authMiddleware, upload.single('image'), uploadController.uploadSingle);
+app.post('/api/upload/multiple', authMiddleware, upload.array('images', 5), uploadController.uploadMultiple);
+app.post('/api/pins/create', authMiddleware, upload.array('media', 5), uploadController.createPinWithMedia);
 
 
 const handler = new OpenAPIHandler(router, {

@@ -21,7 +21,8 @@ export const ppr = (roles: string[]) => permission_role.use(async ({ context, ne
     if(!session) {
         throw new ORPCError("UNAUTHORIZED")
     }
-    const user = await userController.getOneForSession(session._id)
+    // session already contains the user data, no need to fetch again
+    const user = session
     if(roles.length === 0){
         return next({
             context: {
