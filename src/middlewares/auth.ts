@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { environment } from "../environment.js";
-import { userModel } from "../models/user.model.js";
+import { userModel} from "../models/user.model.js";
 
-// Extend Request interface to include user
+
 declare global {
   namespace Express {
     interface Request {
@@ -43,11 +43,12 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     }
 
     // Add user to request object
-    req.user = {
-      _id: user._id.toString(),
-      username: user.username,
-      role: user.role
-    };
+req.user = {
+  _id: user._id.toString(),
+  username: user.username,
+  role: user.role
+} as any;
+
 
     next();
   } catch (error: any) {

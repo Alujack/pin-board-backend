@@ -40,7 +40,7 @@ export class SessionController {
             }
             const user = session.user as any as TypeUser
             return {
-                _id: user._id.toString(),
+                _id: user._id?.toString(),
                 username: user.username,
                 status: user.status,
                 role: user.role

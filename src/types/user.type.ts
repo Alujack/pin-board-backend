@@ -3,10 +3,10 @@ import { Request } from "express"
 import { TypeUser, zUser } from "../models/user.model.js"
 import { RoleEnum } from "./enums.js"
 
-
-
-export interface IRequest extends Request {
-    user?: TypeUser 
+declare module "express-serve-static-core" {
+    interface Request {
+        user?: TypeUser
+    }
 }
 
 export const userQuery = z.object({
@@ -21,5 +21,10 @@ const createUser = zUser.pick({
     username: true,
     password: true,
 })
+export interface AuthUser {
+  _id: string;
+  username: string;
+  role: RoleEnum;
+}
 
 export type TypeCreateUser = z.infer<typeof createUser>
