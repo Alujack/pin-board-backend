@@ -1,5 +1,6 @@
 import z from "zod";
 import { zBoard } from "../models/board.model.js";
+import { mediaItemSchema } from "./pin.type.js";
 
 // Request types for creating a board
 export const createBoardRequestSchema = z.object({
@@ -29,6 +30,7 @@ export const boardResponseSchema = zBoard.extend({
     description: z.string().optional(),
     link_url: z.string().optional(),
     createdAt: z.date(),
+    media: z.array(mediaItemSchema).optional(),
   })).optional(),
   pinCount: z.number().default(0),
 });
