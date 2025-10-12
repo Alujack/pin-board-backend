@@ -8,6 +8,8 @@ const zUser = zModel.extend({
     username: z.string().min(1).max(255),
     password: z.string().min(1).max(255),
     profile_picture: z.string().optional(),
+    // List of pin ids the user has saved/bookmarked
+    saved_pins: z.array(zId().ref("Pin")).optional(),
     role: z.enum([RoleEnum.ADMIN, RoleEnum.USER]).default(RoleEnum.USER),
     is_active: z.enum([UserStatusEnum.ACTIVE, UserStatusEnum.INACTIVE]).default(UserStatusEnum.ACTIVE)
 }).omit({ _id: true }).extend({
