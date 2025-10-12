@@ -14,6 +14,13 @@ const zPin = zModel.extend({
 })
 
 const schema = zodSchema(zPin, schemaOptions)
+// Add a text index for title/description to support fast text search
+try {
+    schema.index({ title: 'text', description: 'text' }, { weights: { title: 5, description: 1 } });
+} catch (err) {
+    // ignore if index already exists or if zod-mongoose schema doesn't support it at runtime
+    console.warn('Could not create text index on Pin schema', err);
+}
 const pinModel = model("Pin", schema)
 export { zPin, pinModel };
 export type TypePin = z.infer<typeof zPin>
