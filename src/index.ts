@@ -37,6 +37,21 @@ databaseConnection()
 app.post('/api/upload/single', authMiddleware, upload.single('image'), uploadController.uploadSingle);
 app.post('/api/upload/multiple', authMiddleware, upload.array('images', 5), uploadController.uploadMultiple);
 app.post('/api/pins/create', authMiddleware, upload.array('media', 5), uploadController.createPinWithMedia);
+// Save pin to user's saved_pins
+app.post('/api/pins/:id/save', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const pinId = req.params.id;
+    const rawUserId = req.user?._id;
+    const userId = rawUserId ? String(rawUserId) : null;
+    if (!userId) return res.status(401).json({ success: false, message: 'User not authenticated' });
+    const result = await (await import('./services/pin.service.js')).pinService.savePinToUser(pinId, userId);
+    return res.json(result);
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err.message || 'Internal server error' });
+  }
+});
+// Download media proxy (authenticated)
+app.get('/api/pins/media/:publicId/download', authMiddleware, uploadController.downloadMedia);
 
 
 const handler = new OpenAPIHandler(router, {

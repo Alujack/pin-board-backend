@@ -284,4 +284,37 @@ export const pinService = {
       throw handleError(error);
     }
   }
+  ,
+  /**
+   * Save a pin to a user's saved_pins list and record an interaction
+   */
+  async savePinToUser(pinId: string, userId: string, allowSelfSave: boolean = false) {
+    try {
+      // Ensure pin exists
+      const pin = await pinModel.findById(pinId);
+      if (!pin) throw new NotFoundError('Pin not found');
+
+      // Prevent saving own pin by default
+      if (!allowSelfSave && pin.user && pin.user.toString() === userId) {
+        throw new ForbiddenError('You cannot save your own pin');
+      }
+
+      // Add to user's saved_pins if not already present
+      await userModel.updateOne(
+        { _id: userId, saved_pins: { $ne: pinId } },
+        { $push: { saved_pins: pinId } }
+      );
+
+      // Create interaction entry
+      try {
+        await interactionModel.create({ user: userId, pin: pinId, interactionType: ["save"] } as any);
+      } catch (err) {
+        console.warn('Could not record save interaction', err);
+      }
+
+      return ResponseUtil.success({ pinId, userId }, 'Pin saved');
+    } catch (error: any) {
+      throw handleError(error);
+    }
+  },
 };
