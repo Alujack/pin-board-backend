@@ -1,10 +1,10 @@
 import { ppr } from "../config/orpc.js";
 import { pinController } from "../controllers/pin.controller.js";
-import { 
-  createPinRequestSchema, 
+import {
+  createPinRequestSchema,
   updatePinRequestSchema,
   pinQuerySchema,
-  assignTagsRequestSchema 
+  assignTagsRequestSchema,
 } from "../types/pin.type.js";
 import { pathIdZod } from "../types/common.js";
 
@@ -17,7 +17,7 @@ export const pinRoute = {
     .route({
       path: `${path}`,
       method: "GET",
-      tags: tags
+      tags: tags,
     })
     .input(pinQuerySchema)
     .handler(async ({ input, context }) => {
@@ -29,7 +29,7 @@ export const pinRoute = {
     .route({
       path: `${path}/:id`,
       method: "GET",
-      tags: tags
+      tags: tags,
     })
     .input(pathIdZod)
     .handler(async ({ input, context }) => {
@@ -42,7 +42,7 @@ export const pinRoute = {
     .route({
       path: `${path}/:id`,
       method: "PUT",
-      tags: tags
+      tags: tags,
     })
     .input(updatePinRequestSchema.extend({ id: pathIdZod.shape.id }))
     .handler(async ({ input, context }) => {
@@ -55,7 +55,7 @@ export const pinRoute = {
     .route({
       path: `${path}/:id`,
       method: "DELETE",
-      tags: tags
+      tags: tags,
     })
     .input(pathIdZod)
     .handler(async ({ input, context }) => {
@@ -68,11 +68,48 @@ export const pinRoute = {
     .route({
       path: `${path}/:id/tags`,
       method: "POST",
-      tags: tags
+      tags: tags,
     })
     .input(assignTagsRequestSchema.extend({ id: pathIdZod.shape.id }))
     .handler(async ({ input, context }) => {
       const { id, ...tagData } = input;
       return await pinController.assignTags(id, tagData, context);
+    }),
+  // Save a pin to user's saved pins
+  savePin: ppr([])
+    .route({
+      path: `${path}/{id}/save`,
+      method: "POST",
+      tags: tags,
+    })
+    .input(pathIdZod)
+    .handler(async ({ input, context }) => {
+      const id = input.id;
+      return await pinController.savePinToUser(id, context);
+    }),
+  // Get media URL (visible in OpenAPI) - resolves a pin id or public_id to a JSON with media_url
+  getMediaUrl: ppr([])
+    .route({
+      // use OpenAPI path parameter syntax so the spec shows {id} correctly
+      path: `${path}/media/{id}/download`,
+      method: "GET",
+      tags: tags,
+    })
+    .input(pathIdZod)
+    .handler(async ({ input, context }) => {
+      const id = input.id;
+      return await pinController.getMediaUrl(id, context);
+    }),
+
+  // search endpoint
+  search: ppr([])
+    .route({
+      path: `${path}/search`,
+      method: "GET",
+      tags: tags,
+    })
+    .input(pinQuerySchema)
+    .handler(async ({ input, context }) => {
+      return await pinController.getPins(input, context);
     }),
 };
