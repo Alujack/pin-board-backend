@@ -87,6 +87,16 @@ export const pinRoute = {
       const id = input.id;
       return await pinController.savePinToUser(id, context);
     }),
+
+    getSavedPins: ppr([])
+    .route({
+      path: `${path}/saved`,
+      method: "GET",
+      tags: tags,
+    })
+    .handler(async ({ context }) => {
+      return await pinController.getSavedPins(context);
+    }),
   // Get media URL (visible in OpenAPI) - resolves a pin id or public_id to a JSON with media_url
   getMediaUrl: ppr([])
     .route({

@@ -84,4 +84,13 @@ export const pinController = {
       throw handleError(error);
     }
   },
+
+  // Get all saved pins for the authenticated user
+async getSavedPins(context: any) {
+  try {
+    return await pinService.getSavedPins(context.user._id);
+  } catch (error: any) {
+    throw handleError(error);
+  }
+}
 };
