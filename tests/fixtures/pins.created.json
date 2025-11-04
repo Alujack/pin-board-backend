@@ -1,0 +1,71 @@
+{
+  "success": true,
+  "message": "Pins retrieved successfully",
+  "data": [
+    {
+      "_id": "6750f0a3e1c2ab0012abcd01",
+      "board": {
+        "_id": "674ff9d2e1c2ab0012aa0001",
+        "name": "My Inspirations",
+        "is_public": true
+      },
+      "user": {
+        "_id": "674ff8a1e1c2ab0012aa0000",
+        "username": "ownerUser",
+        "profile_picture": "https://cdn.example.com/u/ownerUser.jpg"
+      },
+      "title": "Minimal desk setup",
+      "description": "Clean and simple white desk setup.",
+      "link_url": "https://example.com/post/minimal-desk",
+      "createdAt": "2025-11-04T10:00:00.000Z",
+      "updatedAt": "2025-11-04T10:00:00.000Z",
+      "tags": [
+        { "_id": "6750f1b4e1c2ab0012abcd10", "name": "workspace" },
+        { "_id": "6750f1b4e1c2ab0012abcd11", "name": "minimal" }
+      ],
+      "media": [
+        {
+          "media_url": "https://res.cloudinary.com/demo/image/upload/v1730714400/pins/6750f0a3e1c2ab0012abcd01/desk.jpg",
+          "thumbnail_url": "https://res.cloudinary.com/demo/image/upload/v1730714400/pins/6750f0a3e1c2ab0012abcd01/desk_thumb.jpg",
+          "public_id": "pins/6750f0a3e1c2ab0012abcd01/desk",
+          "format": "jpg",
+          "resource_type": "image"
+        }
+      ]
+    },
+    {
+      "_id": "6750f0c8e1c2ab0012abcd02",
+      "board": {
+        "_id": "674ff9d2e1c2ab0012aa0001",
+        "name": "My Inspirations",
+        "is_public": true
+      },
+      "user": {
+        "_id": "674ff8a1e1c2ab0012aa0000",
+        "username": "ownerUser",
+        "profile_picture": "https://cdn.example.com/u/ownerUser.jpg"
+      },
+      "title": "Coffee brewing guide",
+      "description": "V60 pour-over basics.",
+      "link_url": "https://example.com/post/v60-basics",
+      "createdAt": "2025-11-03T09:30:00.000Z",
+      "updatedAt": "2025-11-03T09:30:00.000Z",
+      "media": [
+        {
+          "media_url": "https://res.cloudinary.com/demo/video/upload/v1730628000/pins/6750f0c8e1c2ab0012abcd02/v60.mp4",
+          "thumbnail_url": "https://res.cloudinary.com/demo/image/upload/v1730628000/pins/6750f0c8e1c2ab0012abcd02/v60_thumb.jpg",
+          "public_id": "pins/6750f0c8e1c2ab0012abcd02/v60",
+          "format": "mp4",
+          "resource_type": "video"
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 2,
+    "totalPages": 1
+  }
+}
+
