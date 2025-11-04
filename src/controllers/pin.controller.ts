@@ -92,5 +92,13 @@ async getSavedPins(context: any) {
   } catch (error: any) {
     throw handleError(error);
   }
+},
+
+async unsavePinFromUser(id: string, context: any) {
+  try {
+    return await pinService.unsavePinFromUser(id, context.user._id);
+  } catch (error: any) {
+    throw handleError(error);
+  }
 }
 };
