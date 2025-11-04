@@ -405,4 +405,60 @@ export const pinService = {
       throw handleError(error);
     }
   },
+
+  // Get all media items across saved pins for the authenticated user
+  async getSavedPinsMedia(userId: string) {
+    try {
+      const user = await userModel.findById(userId).select("saved_pins");
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      const savedPinIds = (user.saved_pins as any[]) || [];
+      const mediaArrays = await Promise.all(
+        savedPinIds.map(async (pid: any) => {
+          const pinId = pid.toString();
+          const items = await mediaService.getMediaByPinId(pinId);
+          return items.map((m) => ({ ...m, pinId }));
+        })
+      );
+
+      const media = ([] as any[]).concat(...mediaArrays);
+
+      return ResponseUtil.success(
+        media,
+        "Saved media retrieved successfully"
+      );
+    } catch (error: any) {
+      throw handleError(error);
+    }
+  },
+
+  // Get all image media across pins created by the authenticated user
+  async getCreatedPinsImageMedia(userId: string) {
+    try {
+      // Find pins created by the user
+      const pins = await pinModel.find({ user: userId }).select("_id");
+      const pinIds = pins.map((p) => p._id.toString());
+
+      const mediaArrays = await Promise.all(
+        pinIds.map(async (pinId) => {
+          const items = await mediaService.getMediaByPinId(pinId);
+          // Filter only images
+          return items
+            .filter((m) => (m as any).resource_type === "image")
+            .map((m) => ({ ...m, pinId }));
+        })
+      );
+
+      const media = ([] as any[]).concat(...mediaArrays);
+
+      return ResponseUtil.success(
+        media,
+        "Created image media retrieved successfully"
+      );
+    } catch (error: any) {
+      throw handleError(error);
+    }
+  },
 };

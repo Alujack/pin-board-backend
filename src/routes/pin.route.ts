@@ -37,6 +37,28 @@ export const pinRoute = {
       return await pinController.getPinById(id, context);
     }),
 
+  // Get pins created by the authenticated user
+  getCreated: ppr([])
+    .route({
+      path: `${path}/created`,
+      method: "GET",
+      tags: tags,
+    })
+    .input(pinQuerySchema)
+    .handler(async ({ input, context }) => {
+      return await pinController.getCreatedPins(input, context);
+    }),
+  // Get only image media for the authenticated user's created pins
+  getCreatedImages: ppr([])
+    .route({
+      path: `${path}/created/media/images`,
+      method: "GET",
+      tags: tags,
+    })
+    .handler(async ({ context }) => {
+      return await pinController.getCreatedPinsImageMedia(context);
+    }),
+
   // Update a pin
   update: ppr([])
     .route({
@@ -108,6 +130,26 @@ export const pinRoute = {
     .handler(async ({ input, context }) => {
       const id = input.id;
       return await pinController.unsavePinFromUser(id, context);
+    }),
+  // Get all media items for user's saved pins
+  getSavedMedia: ppr([])
+    .route({
+      path: `${path}/saved/media`,
+      method: "GET",
+      tags: tags,
+    })
+    .handler(async ({ context }) => {
+      return await pinController.getSavedPinsMedia(context);
+    }),
+  // Alias endpoint as requested: GET /save -> saved pins media
+  getSavedMediaAlias: ppr([])
+    .route({
+      path: `/save`,
+      method: "GET",
+      tags: tags,
+    })
+    .handler(async ({ context }) => {
+      return await pinController.getSavedPinsMedia(context);
     }),
   // Get media URL (visible in OpenAPI) - resolves a pin id or public_id to a JSON with media_url
   getMediaUrl: ppr([])
