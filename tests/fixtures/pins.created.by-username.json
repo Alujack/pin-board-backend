@@ -1,0 +1,71 @@
+{
+  "success": true,
+  "message": "Pins retrieved successfully",
+  "data": [
+    {
+      "_id": "675100a3e1c2ab0012abce01",
+      "board": {
+        "_id": "674ffa12e1c2ab0012aa1001",
+        "name": "UI Ideas",
+        "is_public": true
+      },
+      "user": {
+        "_id": "674ff8a1e1c2ab0012aa0100",
+        "username": "john_doe",
+        "profile_picture": "https://cdn.example.com/u/john_doe.jpg"
+      },
+      "title": "Dark mode palette",
+      "description": "Accessible color palette for dark UI.",
+      "link_url": "https://example.com/post/dark-mode-colors",
+      "createdAt": "2025-11-02T08:15:00.000Z",
+      "updatedAt": "2025-11-02T08:15:00.000Z",
+      "tags": [
+        { "_id": "67510ab4e1c2ab0012abcf10", "name": "design" },
+        { "_id": "67510ab4e1c2ab0012abcf11", "name": "accessibility" }
+      ],
+      "media": [
+        {
+          "media_url": "https://res.cloudinary.com/demo/image/upload/v1730544900/pins/675100a3e1c2ab0012abce01/palette.png",
+          "thumbnail_url": "https://res.cloudinary.com/demo/image/upload/v1730544900/pins/675100a3e1c2ab0012abce01/palette_thumb.jpg",
+          "public_id": "pins/675100a3e1c2ab0012abce01/palette",
+          "format": "png",
+          "resource_type": "image"
+        }
+      ]
+    },
+    {
+      "_id": "675100c8e1c2ab0012abce02",
+      "board": {
+        "_id": "674ffa12e1c2ab0012aa1001",
+        "name": "UI Ideas",
+        "is_public": true
+      },
+      "user": {
+        "_id": "674ff8a1e1c2ab0012aa0100",
+        "username": "john_doe",
+        "profile_picture": "https://cdn.example.com/u/john_doe.jpg"
+      },
+      "title": "Micro-interactions",
+      "description": "Button hover states and click feedback.",
+      "link_url": "https://example.com/post/micro-interactions",
+      "createdAt": "2025-11-01T12:00:00.000Z",
+      "updatedAt": "2025-11-01T12:00:00.000Z",
+      "media": [
+        {
+          "media_url": "https://res.cloudinary.com/demo/video/upload/v1730457600/pins/675100c8e1c2ab0012abce02/hover.mp4",
+          "thumbnail_url": "https://res.cloudinary.com/demo/image/upload/v1730457600/pins/675100c8e1c2ab0012abce02/hover_thumb.jpg",
+          "public_id": "pins/675100c8e1c2ab0012abce02/hover",
+          "format": "mp4",
+          "resource_type": "video"
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 2,
+    "totalPages": 1
+  }
+}
+
