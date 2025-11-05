@@ -20,7 +20,7 @@ export const pinRoute = {
       tags: tags,
     })
     .input(pinQuerySchema)
-    .handler(async ({ input, context }) => {
+    .handler(async ({ input, context }:{input: any, context: any}) => {
       return await pinController.getPins(input, context);
     }),
 
@@ -32,7 +32,7 @@ export const pinRoute = {
       tags: tags,
     })
     .input(pathIdZod)
-    .handler(async ({ input, context }) => {
+    .handler(async ({ input, context }:{input: any, context: any}) => {
       const id = input.id;
       return await pinController.getPinById(id, context);
     }),
@@ -45,7 +45,7 @@ export const pinRoute = {
       tags: tags,
     })
     .input(pinQuerySchema)
-    .handler(async ({ input, context }) => {
+    .handler(async ({ input, context }:{input: any, context: any}) => {
       return await pinController.getCreatedPins(input, context);
     }),
   // Get only image media for the authenticated user's created pins
@@ -55,7 +55,7 @@ export const pinRoute = {
       method: "GET",
       tags: tags,
     })
-    .handler(async ({ context }) => {
+    .handler(async ({ context }: { context: any }) => {
       return await pinController.getCreatedPinsImageMedia(context);
     }),
 
@@ -67,7 +67,7 @@ export const pinRoute = {
       tags: tags,
     })
     .input(updatePinRequestSchema.extend({ id: pathIdZod.shape.id }))
-    .handler(async ({ input, context }) => {
+    .handler(async ({ input, context }:{input: any, context: any}) => {
       const { id, ...updateData } = input;
       return await pinController.updatePin(id, updateData, context);
     }),
@@ -80,7 +80,7 @@ export const pinRoute = {
       tags: tags,
     })
     .input(pathIdZod)
-    .handler(async ({ input, context }) => {
+    .handler(async ({ input, context }:{input: any, context: any}) => {
       const id = input.id;
       return await pinController.deletePin(id, context);
     }),
@@ -93,7 +93,7 @@ export const pinRoute = {
       tags: tags,
     })
     .input(assignTagsRequestSchema.extend({ id: pathIdZod.shape.id }))
-    .handler(async ({ input, context }) => {
+    .handler(async ({ input, context }:{input: any, context: any}) => {
       const { id, ...tagData } = input;
       return await pinController.assignTags(id, tagData, context);
     }),
@@ -105,7 +105,7 @@ export const pinRoute = {
       tags: tags,
     })
     .input(pathIdZod)
-    .handler(async ({ input, context }) => {
+    .handler(async ({ input, context }:{input: any, context: any}) => {
       const id = input.id;
       return await pinController.savePinToUser(id, context);
     }),
@@ -116,7 +116,7 @@ export const pinRoute = {
       method: "GET",
       tags: tags,
     })
-    .handler(async ({ context }) => {
+    .handler(async ({ context }:{input: any, context: any}) => {
       return await pinController.getSavedPins(context);
     }),
 
@@ -127,7 +127,7 @@ export const pinRoute = {
       tags: tags,
     })
     .input(pathIdZod)
-    .handler(async ({ input, context }) => {
+    .handler(async ({ input, context }:{input: any, context: any}) => {
       const id = input.id;
       return await pinController.unsavePinFromUser(id, context);
     }),
@@ -138,7 +138,7 @@ export const pinRoute = {
       method: "GET",
       tags: tags,
     })
-    .handler(async ({ context }) => {
+    .handler(async ({ context }:{context: any}) => {
       return await pinController.getSavedPinsMedia(context);
     }),
   // Alias endpoint as requested: GET /save -> saved pins media
@@ -148,7 +148,7 @@ export const pinRoute = {
       method: "GET",
       tags: tags,
     })
-    .handler(async ({ context }) => {
+    .handler(async ({ context }:{context: any}) => {
       return await pinController.getSavedPinsMedia(context);
     }),
   // Get media URL (visible in OpenAPI) - resolves a pin id or public_id to a JSON with media_url
@@ -160,7 +160,7 @@ export const pinRoute = {
       tags: tags,
     })
     .input(pathIdZod)
-    .handler(async ({ input, context }) => {
+    .handler(async ({ input, context }:{input:any ,context: any}) => {
       const id = input.id;
       return await pinController.getMediaUrl(id, context);
     }),
@@ -173,7 +173,7 @@ export const pinRoute = {
       tags: tags,
     })
     .input(pinQuerySchema)
-    .handler(async ({ input, context }) => {
+    .handler(async ({ input, context }:{input:any ,context: any}) => {
       return await pinController.getPins(input, context);
     }),
 };
