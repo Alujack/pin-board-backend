@@ -11,6 +11,7 @@ const zPin = zModel.extend({
     link_url: z.string().max(500).optional(),
 }).omit({ _id: true }).extend({
     _id: zId().optional(),
+    pin_vector: z.array(z.number()).optional()
 })
 
 const schema = zodSchema(zPin, schemaOptions)

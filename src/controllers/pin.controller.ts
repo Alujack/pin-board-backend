@@ -1,13 +1,7 @@
 import { 
-  createPinRequestSchema, 
-  updatePinRequestSchema,
-  pinQuerySchema,
-  assignTagsRequestSchema,
-  CreatePinRequest,
   UpdatePinRequest,
   PinQuery,
   AssignTagsRequest,
-  CreatePinResponse,
   PinListResponse,
   PinResponse
 } from "../types/pin.type.js";

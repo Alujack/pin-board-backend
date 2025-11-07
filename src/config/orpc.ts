@@ -1,5 +1,5 @@
 import { Context, ORPCError, os } from "@orpc/server";
-import { sessionController, userController } from "../controllers/index.js";
+import { sessionController } from "../controllers/index.js";
 
 const o = os.$context<Context>()
 export const public_permission = o
