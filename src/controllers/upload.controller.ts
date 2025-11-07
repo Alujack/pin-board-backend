@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import { pinModel } from "../models/pin.model.js";
 import { boardModel } from "../models/board.model.js";
 import { uploadService } from "../services/media/upload.service.js";
+import { mediaService } from "../services/media/media.service.js";
+import fetch from "node-fetch";
 import { ORPCError } from "@orpc/client";
 import { ObjectId } from "mongodb";
 
@@ -13,6 +15,52 @@ export const uploadController = {
       res.json({ success: true, message: "Image uploaded successfully", data: result });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
+    }
+  },
+
+  // Stream/download a media file by its public id (authenticated)
+  async downloadMedia(req: Request, res: Response): Promise<Response | void> {
+    try {
+      const idOrPublicId = req.params.publicId as string;
+      if (!idOrPublicId) {
+        return res.status(400).json({ success: false, message: 'publicId or pinId required' });
+      }
+
+      let mediaUrl: string | undefined;
+
+      // If param looks like a Mongo ObjectId (24 hex chars), try to treat it as a pin id and fetch media for the pin
+      const isObjectId = /^[0-9a-fA-F]{24}$/.test(idOrPublicId);
+      if (isObjectId) {
+        const items = await mediaService.getMediaByPinId(idOrPublicId);
+        if (!items || items.length === 0) {
+          return res.status(404).json({ success: false, message: 'No media found for this pin' });
+        }
+        // use the first media item
+        mediaUrl = items[0].media_url;
+      } else {
+        const media = await mediaService.getMediaByPublicId(idOrPublicId);
+        if (!media) {
+          return res.status(404).json({ success: false, message: 'Media not found' });
+        }
+        mediaUrl = media.media_url;
+      }
+
+      // Stream the cloudinary URL to the client (proxy)
+      const response = await fetch(mediaUrl as string);
+      if (!response.ok) {
+        return res.status(502).json({ success: false, message: 'Failed to fetch media' });
+      }
+
+      // copy content-type and length
+      const contentType = response.headers.get('content-type') || 'application/octet-stream';
+      const contentLength = response.headers.get('content-length');
+      if (contentLength) res.setHeader('Content-Length', contentLength);
+      res.setHeader('Content-Type', contentType);
+
+      // Pipe the remote stream
+      (response.body as any).pipe(res);
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message || 'Internal server error' });
     }
   },
 
