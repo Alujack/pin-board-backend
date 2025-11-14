@@ -1,3 +1,6 @@
 node_modules
 .env
 dist
+BOARD_API_DOCUMENTATION.md
+CODEBASE_REVIEW.md
+PIN_API_DOCUMENTATION.md
