@@ -117,7 +117,6 @@ export const pinService = {
       const pin = await pinModel.findById(id).populate([
         { path: "user", select: "username profile_picture" },
         { path: "board", select: "name is_public" },
-        { path: "tags", select: "name" },
       ]);
 
       if (!pin) {
@@ -295,7 +294,6 @@ export const pinService = {
       const updatedPin = await pinModel.findById(id).populate([
         { path: "user", select: "username profile_picture" },
         { path: "board", select: "name is_public" },
-        { path: "tags", select: "name" },
       ]);
 
       return ResponseUtil.updated(
@@ -365,35 +363,35 @@ export const pinService = {
     }
   },
 
-    // Remove a pin from a user's saved_pins and record an interaction
-    async unsavePinFromUser(pinId: string, userId: string) {
+  // Remove a pin from a user's saved_pins and record an interaction
+  async unsavePinFromUser(pinId: string, userId: string) {
+    try {
+      // Ensure pin exists
+      const pin = await pinModel.findById(pinId);
+      if (!pin) throw new NotFoundError("Pin not found");
+
+      // Remove from user's saved_pins
+      await userModel.updateOne(
+        { _id: userId },
+        { $pull: { saved_pins: pinId } }
+      );
+
+      // Optionally record an "unsave" interaction
       try {
-        // Ensure pin exists
-        const pin = await pinModel.findById(pinId);
-        if (!pin) throw new NotFoundError("Pin not found");
-  
-        // Remove from user's saved_pins
-        await userModel.updateOne(
-          { _id: userId },
-          { $pull: { saved_pins: pinId } }
-        );
-  
-        // Optionally record an "unsave" interaction
-        try {
-          await interactionModel.create({
-            user: userId,
-            pin: pinId,
-            interactionType: ["unsave"],
-          } as any);
-        } catch (err) {
-          console.warn("Could not record unsave interaction", err);
-        }
-  
-        return ResponseUtil.success({ pinId, userId }, "Pin unsaved");
-      } catch (error: any) {
-        throw handleError(error);
+        await interactionModel.create({
+          user: userId,
+          pin: pinId,
+          interactionType: ["unsave"],
+        } as any);
+      } catch (err) {
+        console.warn("Could not record unsave interaction", err);
       }
-    },
+
+      return ResponseUtil.success({ pinId, userId }, "Pin unsaved");
+    } catch (error: any) {
+      throw handleError(error);
+    }
+  },
 
   // Get all saved pins for the authenticated user
   async getSavedPins(userId: string) {

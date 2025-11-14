@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Initialize Firebase Admin SDK
-const serviceAccountPath = join(__dirname, '../firebase/pinterest-app-4c344-firebase-adminsdk-fbsvc-cd5be08d15.json');
+const serviceAccountPath = join(__dirname, '../firebase/pinterest-app-4c344-firebase-adminsdk-fbsvc-df010b3042.json');
 const serviceAccount = JSON.parse(readFileSync(serviceAccountPath, 'utf8'));
 
 try {
