@@ -4,3 +4,6 @@ dist
 BOARD_API_DOCUMENTATION.md
 CODEBASE_REVIEW.md
 PIN_API_DOCUMENTATION.md
+FIREBASE_PUSH_NOTIFICATION_SETUP.md
+# Firebase service account credentials (sensitive)
+src/firebase/*.json

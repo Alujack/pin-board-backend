@@ -4,6 +4,7 @@ import { UserController } from "./user.controller.js"
 import { pinController } from "./pin.controller.js"
 import { boardController } from "./board.controller.js"
 import { uploadController } from "./upload.controller.js"
+import { notificationController } from "./notification.controller.js"
 
 
 const userController = new UserController()
@@ -15,5 +16,6 @@ export {
     sessionController,
     pinController,
     boardController,
-    uploadController
+    uploadController,
+    notificationController
 }
