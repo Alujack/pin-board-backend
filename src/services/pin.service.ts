@@ -5,6 +5,7 @@ import { tagModel } from "../models/tag.model.js";
 import { pinTagModel } from "../models/pin-tag.model.js";
 import { interactionModel } from "../models/interaction.model.js";
 import { mediaService } from "./media/media.service.js";
+import { notificationService } from "./notification.service.js";
 import {
   CreatePinRequest,
   UpdatePinRequest,
@@ -315,7 +316,7 @@ export const pinService = {
   ) {
     try {
       // Ensure pin exists
-      const pin = await pinModel.findById(pinId);
+      const pin = await pinModel.findById(pinId).populate('user');
       if (!pin) throw new NotFoundError("Pin not found");
 
       // Prevent saving own pin by default
@@ -324,20 +325,38 @@ export const pinService = {
       }
 
       // Add to user's saved_pins if not already present
-      await userModel.updateOne(
+      const updateResult = await userModel.updateOne(
         { _id: userId, saved_pins: { $ne: pinId } },
         { $push: { saved_pins: pinId } }
       );
 
-      // Create interaction entry
-      try {
-        await interactionModel.create({
-          user: userId,
-          pin: pinId,
-          interactionType: ["save"],
-        } as any);
-      } catch (err) {
-        console.warn("Could not record save interaction", err);
+      // Only proceed if the pin was actually added (not already saved)
+      if (updateResult.modifiedCount > 0) {
+        // Create interaction entry
+        try {
+          await interactionModel.create({
+            user: userId,
+            pin: pinId,
+            interactionType: ["save"],
+          } as any);
+        } catch (err) {
+          console.warn("Could not record save interaction", err);
+        }
+
+        // Send push notification to pin owner
+        try {
+          const saver = await userModel.findById(userId).select('username');
+          if (saver && pin.user) {
+            await notificationService.notifyPinSaved(
+              pinId,
+              pin.title || 'Untitled Pin',
+              pin.user.toString(),
+              saver.username
+            );
+          }
+        } catch (err) {
+          console.warn("Could not send pin saved notification", err);
+        }
       }
 
       return ResponseUtil.success({ pinId, userId }, "Pin saved");

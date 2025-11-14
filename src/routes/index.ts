@@ -2,6 +2,7 @@ import { authRoute } from "./auth.route.js";
 import { userRoute } from "./user.route.js";
 import { pinRoute } from "./pin.route.js";
 import { boardRoute } from "./board.route.js";
+import { notificationRoute } from "./notification.route.js";
 
 
 export const router = {
@@ -9,4 +10,5 @@ export const router = {
     auth: authRoute,
     pin: pinRoute,
     board: boardRoute,
+    notification: notificationRoute,
 }
