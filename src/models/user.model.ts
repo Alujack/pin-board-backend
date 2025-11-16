@@ -11,7 +11,9 @@ const zUser = zModel.extend({
     // List of pin ids the user has saved/bookmarked
     saved_pins: z.array(zId().ref("Pin")).optional(),
     role: z.enum([RoleEnum.ADMIN, RoleEnum.USER]).default(RoleEnum.USER),
-    is_active: z.enum([UserStatusEnum.ACTIVE, UserStatusEnum.INACTIVE]).default(UserStatusEnum.ACTIVE)
+    is_active: z.enum([UserStatusEnum.ACTIVE, UserStatusEnum.INACTIVE]).default(UserStatusEnum.ACTIVE),
+    // FCM token for push notifications
+    fcm_token: z.string().optional(),
 }).omit({ _id: true }).extend({
     _id: zId().optional(),
 })
