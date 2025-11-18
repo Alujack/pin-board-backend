@@ -30,7 +30,7 @@ export const pinController = {
     }
   },
   // Resolve media URL for a pin id or public id (returns JSON URL) - useful for OpenAPI/docs
-  async getMediaUrl(idOrPublicId: string, context: any) {
+  async getMediaUrl(idOrPublicId: string) {
     try {
       const isObjectId = /^[0-9a-fA-F]{24}$/.test(idOrPublicId);
       if (isObjectId) {
