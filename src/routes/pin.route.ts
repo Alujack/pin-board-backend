@@ -27,7 +27,7 @@ export const pinRoute = {
   // Get a single pin by ID
   getOne: ppr([])
     .route({
-      path: `${path}/:id`,
+      path: `${path}/detail/:id`,
       method: "GET",
       tags: tags,
     })

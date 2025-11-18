@@ -4,7 +4,6 @@ import { boardModel } from "../models/board.model.js";
 import { uploadService } from "../services/media/upload.service.js";
 import { mediaService } from "../services/media/media.service.js";
 import fetch from "node-fetch";
-import { ORPCError } from "@orpc/client";
 import { ObjectId } from "mongodb";
 
 export const uploadController = {

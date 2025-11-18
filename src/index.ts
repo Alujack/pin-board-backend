@@ -18,6 +18,8 @@ import { createContext, ExpressContext } from "./config/context.js";
 import upload from './config/multer.js';
 import { uploadController } from "./controllers/upload.controller.js";
 import { authMiddleware } from "./middlewares/auth.js";
+// Initialize Firebase Admin SDK
+import "./config/firebase.config.js";
 
 dotenv.config()
 const app: Express = express()

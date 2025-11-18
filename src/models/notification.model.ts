@@ -15,6 +15,13 @@ const zNotification = zModel.extend({
     ]),
     content: z.string().min(1).max(500),
     is_read: z.boolean().default(false),
+    // Optional metadata for navigation and additional context
+    metadata: z.object({
+        pin_id: z.string().optional(),
+        board_id: z.string().optional(),
+        user_id: z.string().optional(),
+        action: z.string().optional(),
+    }).optional(),
     created_at: z.date().default(() => new Date()),
 }).omit({ _id: true }).extend({
     _id: zId().optional(),
