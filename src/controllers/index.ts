@@ -5,11 +5,13 @@ import { pinController } from "./pin.controller.js"
 import { boardController } from "./board.controller.js"
 import { uploadController } from "./upload.controller.js"
 import { notificationController } from "./notification.controller.js"
+import { InteractionController } from "./interaction.controller.js"
 
 
 const userController = new UserController()
 const authController = new AuthController()
 const sessionController = new SessionController()
+const interactionController = new InteractionController()
 export {
     authController,
     userController,
@@ -17,5 +19,6 @@ export {
     pinController,
     boardController,
     uploadController,
-    notificationController
+    notificationController,
+    interactionController
 }

@@ -3,6 +3,7 @@ import { userRoute } from "./user.route.js";
 import { pinRoute } from "./pin.route.js";
 import { boardRoute } from "./board.route.js";
 import { notificationRoute } from "./notification.route.js";
+import { interactionRoute } from './interaction.router.js';
 
 
 export const router = {
@@ -11,4 +12,5 @@ export const router = {
     pin: pinRoute,
     board: boardRoute,
     notification: notificationRoute,
+    interaction: interactionRoute
 }
