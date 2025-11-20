@@ -162,7 +162,7 @@ export const pinRoute = {
     .input(pathIdZod)
     .handler(async ({ input, context }:{input:any ,context: any}) => {
       const id = input.id;
-      return await pinController.getMediaUrl(id, context);
+      return await pinController.getMediaUrl(id);
     }),
 
   // search endpoint

@@ -5,6 +5,7 @@ import fs from "fs";
 import path from "path";
 import { promisify } from "util";
 import { v4 as uuidv4 } from "uuid";
+// @ts-ignore - axios types not properly resolved
 import axios from 'axios';
 import FormData from 'form-data';
 import { ORPCError } from "@orpc/client";

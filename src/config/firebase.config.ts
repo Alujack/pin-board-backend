@@ -26,5 +26,5 @@ try {
 }
 
 export const firebaseAdmin = admin;
-export const messaging = admin.messaging();
+export const messaging: ReturnType<typeof admin.messaging> = admin.messaging();
 
