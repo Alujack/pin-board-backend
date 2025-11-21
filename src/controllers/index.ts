@@ -28,7 +28,7 @@ export {
     boardController,
     uploadController,
     interactionController,
-    personalizeController
+    personalizeController,
     commentController,
     pinLikeController,
     followController,

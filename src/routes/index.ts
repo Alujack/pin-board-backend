@@ -18,7 +18,7 @@ export const router = {
     pin: pinRoute,
     board: boardRoute,
     notification: notificationRoute,
-    interaction: interactionRoute
+    interaction: interactionRoute,
     comment: commentRoute,
     pinLike: pinLikeRoute,
     follow: followRoute,
