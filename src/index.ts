@@ -27,7 +27,9 @@ const port = process.env.PORT || 3000
 const env: string = process.env.NODE_ENV || ""
 const baseUrl = process.env.BASE_URL
 //middleware
-app.use(helmet()) //secure headers
+type HelmetInit = () => any;
+const helmetMiddleware = (helmet as unknown as HelmetInit)();
+app.use(helmetMiddleware) //secure headers
 app.use(cors()) //allow cors
 app.use(express.json()) //json parse
 app.use(morgan('combined')); // logging
