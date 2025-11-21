@@ -1,19 +1,11 @@
-import { public_permission } from "../config/orpc.js"
+import { public_permission, protected_permission } from "../config/orpc.js"
 import { userController } from "../controllers/index.js"
 import { idZod } from "../types/common.js"
 import { userQuery } from "../types/user.type.js"
+import z from "zod"
 
 const path = "/users"
-const tag = ["Classroom"]
-// import oc from '@orpc/client'
-// const userRoute = Router()
-// const userController = new UserController()
-// userRoute.get('', async (req: Request, res: Response) =>  {
-//     const users = await userController.getUser()
-//     res.json(users)
-// })
-
-// export default userRoute
+const tag = ["User"]
 
 export const userRoute = {
     getAll: public_permission
@@ -38,6 +30,49 @@ export const userRoute = {
     .handler(async({ input }) => {
         const id = new Object(input)
         return await userController.getOneUser(id.toString())
+    }),
+
+    // Get user profile with stats
+    getUserProfile: public_permission
+    .route({
+        path: `${path}/profile/:userId`,
+        method: "GET",
+        tags: tag
+    })
+    .input(z.object({
+        userId: z.string()
+    }))
+    .handler(async({ input, context }: any) => {
+        return await userController.getUserProfile(input.userId, context)
+    }),
+
+    // Get current user profile
+    getCurrentUser: protected_permission
+    .route({
+        path: `${path}/me`,
+        method: "GET",
+        tags: tag
+    })
+    .handler(async({ context }: any) => {
+        return await userController.getCurrentUser(context)
+    }),
+
+    // Update user profile
+    updateProfile: protected_permission
+    .route({
+        path: `${path}/profile`,
+        method: "PUT",
+        tags: tag
+    })
+    .input(z.object({
+        full_name: z.string().optional(),
+        bio: z.string().optional(),
+        website: z.string().optional(),
+        location: z.string().optional(),
+        profile_picture: z.string().optional()
+    }))
+    .handler(async({ input, context }: any) => {
+        return await userController.updateUserProfile(input, context)
     })
 }
 
