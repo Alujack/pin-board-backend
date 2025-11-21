@@ -6,12 +6,14 @@ import { boardController } from "./board.controller.js"
 import { uploadController } from "./upload.controller.js"
 import { notificationController } from "./notification.controller.js"
 import { InteractionController } from "./interaction.controller.js"
+import { PersonalizeControllr } from "./personalize.controller.js"
 
 
 const userController = new UserController()
 const authController = new AuthController()
 const sessionController = new SessionController()
 const interactionController = new InteractionController()
+const personalizeController = new PersonalizeControllr()
 export {
     authController,
     userController,
@@ -20,5 +22,6 @@ export {
     boardController,
     uploadController,
     notificationController,
-    interactionController
+    interactionController,
+    personalizeController
 }
