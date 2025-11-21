@@ -5,18 +5,19 @@ import { tagModel } from "../models/tag.model.js";
 import { pinTagModel } from "../models/pin-tag.model.js";
 import { interactionModel } from "../models/interaction.model.js";
 import { mediaService } from "./media/media.service.js";
-import { 
-  CreatePinRequest, 
-  UpdatePinRequest, 
+import { notificationService } from "./notification.service.js";
+import {
+  CreatePinRequest,
+  UpdatePinRequest,
   PinQuery,
   PinResponse,
-  PinListResponse
+  PinListResponse,
 } from "../types/pin.type.js";
-import { 
-  NotFoundError, 
-  ForbiddenError, 
+import {
+  NotFoundError,
+  ForbiddenError,
   ValidationError,
-  handleError 
+  handleError,
 } from "../utils/error.util.js";
 import { ResponseUtil } from "../utils/response.util.js";
 
@@ -32,15 +33,15 @@ export const pinService = {
 
       // Build filter object
       const filter: any = {};
-      
+
       if (query.board) {
         filter.board = query.board;
       }
-      
+
       if (query.user) {
         filter.user = query.user;
       }
-      
+
       if (query.search) {
         filter.$or = [
           { title: { $regex: query.search, $options: "i" } },
@@ -85,7 +86,7 @@ export const pinService = {
           const media = await mediaService.getMediaByPinId(pin._id.toString());
           return {
             ...pin.toObject(),
-            media
+            media,
           };
         })
       );
@@ -108,15 +109,15 @@ export const pinService = {
   /**
    * Get a single pin by ID
    */
-  async getPinById(id: string, userId?: string): Promise<{ success: boolean; message: string; data: PinResponse }> {
+  async getPinById(
+    id: string,
+    userId?: string
+  ): Promise<{ success: boolean; message: string; data: PinResponse }> {
     try {
-      const pin = await pinModel
-        .findById(id)
-        .populate([
-          { path: "user", select: "username profile_picture" },
-          { path: "board", select: "name is_public" },
-          { path: "tags", select: "name" },
-        ]);
+      const pin = await pinModel.findById(id).populate([
+        { path: "user", select: "username profile_picture" },
+        { path: "board", select: "name is_public" },
+      ]);
 
       if (!pin) {
         throw new NotFoundError("Pin not found");
@@ -126,7 +127,7 @@ export const pinService = {
       const media = await mediaService.getMediaByPinId(pin._id.toString());
       const pinWithMedia = {
         ...pin.toObject(),
-        media
+        media,
       };
 
       return ResponseUtil.success(
@@ -141,7 +142,10 @@ export const pinService = {
   /**
    * Create a new pin
    */
-  async createPin(pinData: CreatePinRequest, userId: string): Promise<{ success: boolean; message: string; data: PinResponse }> {
+  async createPin(
+    pinData: CreatePinRequest,
+    userId: string
+  ): Promise<{ success: boolean; message: string; data: PinResponse }> {
     try {
       // Verify board exists and user has access
       const board = await boardModel.findById(pinData.board);
@@ -150,7 +154,9 @@ export const pinService = {
       }
 
       if (board.user.toString() !== userId) {
-        throw new ForbiddenError("You don't have permission to add pins to this board");
+        throw new ForbiddenError(
+          "You don't have permission to add pins to this board"
+        );
       }
 
       // Create pin
@@ -164,7 +170,7 @@ export const pinService = {
       // Populate the response
       await newPin.populate([
         { path: "user", select: "username profile_picture" },
-        { path: "board", select: "name is_public" }
+        { path: "board", select: "name is_public" },
       ]);
 
       return ResponseUtil.created(
@@ -179,7 +185,11 @@ export const pinService = {
   /**
    * Update a pin
    */
-  async updatePin(id: string, updateData: UpdatePinRequest, userId: string): Promise<{ success: boolean; message: string; data: PinResponse }> {
+  async updatePin(
+    id: string,
+    updateData: UpdatePinRequest,
+    userId: string
+  ): Promise<{ success: boolean; message: string; data: PinResponse }> {
     try {
       // Check if pin exists and belongs to user
       const pin = await pinModel.findById(id);
@@ -188,7 +198,9 @@ export const pinService = {
       }
 
       if (pin.user.toString() !== userId) {
-        throw new ForbiddenError("You don't have permission to update this pin");
+        throw new ForbiddenError(
+          "You don't have permission to update this pin"
+        );
       }
 
       // Update pin
@@ -211,7 +223,10 @@ export const pinService = {
   /**
    * Delete a pin
    */
-  async deletePin(id: string, userId: string): Promise<{ success: boolean; message: string }> {
+  async deletePin(
+    id: string,
+    userId: string
+  ): Promise<{ success: boolean; message: string }> {
     try {
       // Check if pin exists and belongs to user
       const pin = await pinModel.findById(id);
@@ -220,7 +235,9 @@ export const pinService = {
       }
 
       if (pin.user.toString() !== userId) {
-        throw new ForbiddenError("You don't have permission to delete this pin");
+        throw new ForbiddenError(
+          "You don't have permission to delete this pin"
+        );
       }
 
       // Delete associated media from Cloudinary
@@ -238,7 +255,11 @@ export const pinService = {
   /**
    * Assign tags to a pin
    */
-  async assignTags(id: string, tagIds: string[], userId: string): Promise<{ success: boolean; message: string; data: PinResponse }> {
+  async assignTags(
+    id: string,
+    tagIds: string[],
+    userId: string
+  ): Promise<{ success: boolean; message: string; data: PinResponse }> {
     try {
       // Check if pin exists and belongs to user
       const pin = await pinModel.findById(id);
@@ -247,7 +268,9 @@ export const pinService = {
       }
 
       if (pin.user.toString() !== userId) {
-        throw new ForbiddenError("You don't have permission to modify this pin");
+        throw new ForbiddenError(
+          "You don't have permission to modify this pin"
+        );
       }
 
       // Verify all tags exist
@@ -260,7 +283,7 @@ export const pinService = {
       await pinTagModel.deleteMany({ pin: id });
 
       // Create new pin-tag associations
-      const pinTagAssociations = tagIds.map(tagId => ({
+      const pinTagAssociations = tagIds.map((tagId) => ({
         pin: id,
         tag: tagId,
       }));
@@ -268,13 +291,10 @@ export const pinService = {
       await pinTagModel.insertMany(pinTagAssociations);
 
       // Return updated pin with tags
-      const updatedPin = await pinModel
-        .findById(id)
-        .populate([
-          { path: "user", select: "username profile_picture" },
-          { path: "board", select: "name is_public" },
-          { path: "tags", select: "name" },
-        ]);
+      const updatedPin = await pinModel.findById(id).populate([
+        { path: "user", select: "username profile_picture" },
+        { path: "board", select: "name is_public" },
+      ]);
 
       return ResponseUtil.updated(
         updatedPin as unknown as PinResponse,
@@ -283,36 +303,177 @@ export const pinService = {
     } catch (error: any) {
       throw handleError(error);
     }
-  }
-  ,
+  },
   /**
    * Save a pin to a user's saved_pins list and record an interaction
    */
-  async savePinToUser(pinId: string, userId: string, allowSelfSave: boolean = false) {
+  async savePinToUser(
+    pinId: string,
+    userId: string,
+    allowSelfSave: boolean = false
+  ) {
     try {
       // Ensure pin exists
-      const pin = await pinModel.findById(pinId);
-      if (!pin) throw new NotFoundError('Pin not found');
+      const pin = await pinModel.findById(pinId).populate('user');
+      if (!pin) throw new NotFoundError("Pin not found");
 
       // Prevent saving own pin by default
       if (!allowSelfSave && pin.user && pin.user.toString() === userId) {
-        throw new ForbiddenError('You cannot save your own pin');
+        throw new ForbiddenError("You cannot save your own pin");
       }
 
       // Add to user's saved_pins if not already present
-      await userModel.updateOne(
+      const updateResult = await userModel.updateOne(
         { _id: userId, saved_pins: { $ne: pinId } },
         { $push: { saved_pins: pinId } }
       );
 
-      // Create interaction entry
-      try {
-        await interactionModel.create({ user: userId, pin: pinId, interactionType: ["save"] } as any);
-      } catch (err) {
-        console.warn('Could not record save interaction', err);
+      // Only proceed if the pin was actually added (not already saved)
+      if (updateResult.modifiedCount > 0) {
+        // Create interaction entry
+        try {
+          await interactionModel.create({
+            user: userId,
+            pin: pinId,
+            interactionType: ["save"],
+          } as any);
+        } catch (err) {
+          console.warn("Could not record save interaction", err);
+        }
+
+        // Send push notification to pin owner
+        try {
+          const saver = await userModel.findById(userId).select('username');
+          if (saver && pin.user) {
+            await notificationService.notifyPinSaved(
+              pinId,
+              pin.title || 'Untitled Pin',
+              pin.user.toString(),
+              saver.username
+            );
+          }
+        } catch (err) {
+          console.warn("Could not send pin saved notification", err);
+        }
       }
 
-      return ResponseUtil.success({ pinId, userId }, 'Pin saved');
+      return ResponseUtil.success({ pinId, userId }, "Pin saved");
+    } catch (error: any) {
+      throw handleError(error);
+    }
+  },
+
+  // Remove a pin from a user's saved_pins and record an interaction
+  async unsavePinFromUser(pinId: string, userId: string) {
+    try {
+      // Ensure pin exists
+      const pin = await pinModel.findById(pinId);
+      if (!pin) throw new NotFoundError("Pin not found");
+
+      // Remove from user's saved_pins
+      await userModel.updateOne(
+        { _id: userId },
+        { $pull: { saved_pins: pinId } }
+      );
+
+      // Optionally record an "unsave" interaction
+      try {
+        await interactionModel.create({
+          user: userId,
+          pin: pinId,
+          interactionType: ["unsave"],
+        } as any);
+      } catch (err) {
+        console.warn("Could not record unsave interaction", err);
+      }
+
+      return ResponseUtil.success({ pinId, userId }, "Pin unsaved");
+    } catch (error: any) {
+      throw handleError(error);
+    }
+  },
+
+  // Get all saved pins for the authenticated user
+  async getSavedPins(userId: string) {
+    try {
+      // Find user and populate saved pins with necessary details
+      const user = await userModel
+        .findById(userId)
+        .populate({
+          path: "saved_pins",
+          populate: {
+            path: "user",
+            select: "username profile_picture", // Adjust fields as needed
+          },
+        })
+        .select("saved_pins");
+
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      return ResponseUtil.success(
+        {
+          pins: user.saved_pins
+        },
+        "Saved pins retrieved successfully"
+      );
+    } catch (error: any) {
+      throw handleError(error);
+    }
+  },
+
+  // Get all media items across saved pins for the authenticated user
+  async getSavedPinsMedia(userId: string) {
+    try {
+      const user = await userModel.findById(userId).select("saved_pins");
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      const savedPinIds = (user.saved_pins as any[]) || [];
+      const mediaArrays = await Promise.all(
+        savedPinIds.map(async (pid: any) => {
+          const pinId = pid.toString();
+          const items = await mediaService.getMediaByPinId(pinId);
+          return items.map((m) => ({ ...m, pinId }));
+        })
+      );
+
+      const media = ([] as any[]).concat(...mediaArrays);
+
+      return ResponseUtil.success(
+        media,
+        "Saved media retrieved successfully"
+      );
+    } catch (error: any) {
+      throw handleError(error);
+    }
+  },
+
+  // Get all image media across pins created by the authenticated user
+  async getCreatedPinsImageMedia(userId: string) {
+    try {
+      // Find pins created by the user
+      const pins = await pinModel.find({ user: userId }).select("_id");
+      const pinIds = pins.map((p) => p._id.toString());
+
+      const mediaArrays = await Promise.all(
+        pinIds.map(async (pinId) => {
+          const items = await mediaService.getMediaByPinId(pinId);
+          // Filter only images
+          return items
+            .filter((m) => (m as any).resource_type === "image")
+            .map((m) => ({ ...m, pinId }));
+        })
+      );
+
+      const media = ([] as any[]).concat(...mediaArrays);
+
+      return ResponseUtil.success(
+        media,
+        "Created image media retrieved successfully"
+      );
     } catch (error: any) {
       throw handleError(error);
     }

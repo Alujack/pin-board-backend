@@ -1,5 +1,5 @@
 import { Context, ORPCError, os } from "@orpc/server";
-import { sessionController, userController } from "../controllers/index.js";
+import { sessionController } from "../controllers/index.js";
 
 const o = os.$context<Context>()
 export const public_permission = o
@@ -12,6 +12,7 @@ const requireAuth = o.middleware(async ({ context, next }) => {
 })
 
 export const permission_role = public_permission.use(requireAuth)
+export const protected_permission = permission_role
 export const ppr = (roles: string[]) => permission_role.use(async ({ context, next }) => {
     if(!context.session){
         throw new ORPCError("UNAUTHORIZED")

@@ -4,7 +4,6 @@ import { boardModel } from "../models/board.model.js";
 import { uploadService } from "../services/media/upload.service.js";
 import { mediaService } from "../services/media/media.service.js";
 import fetch from "node-fetch";
-import { ORPCError } from "@orpc/client";
 import { ObjectId } from "mongodb";
 
 export const uploadController = {
@@ -80,6 +79,7 @@ export const uploadController = {
       // Validate request body
       const { board, title, description, link_url } = req.body;
       
+      console.log("==> ", title)
       if (!board || !title) {
         return res.status(400).json({
           success: false,

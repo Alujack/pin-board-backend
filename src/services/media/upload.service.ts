@@ -5,7 +5,12 @@ import fs from "fs";
 import path from "path";
 import { promisify } from "util";
 import { v4 as uuidv4 } from "uuid";
-
+// @ts-ignore - axios types not properly resolved
+import axios from 'axios';
+import FormData from 'form-data';
+import { ORPCError } from "@orpc/client";
+import { ObjectId } from "mongodb";
+import { pinModel } from "../../models/pin.model.js";
 interface UploadResult {
   url: string;
   filename: string;
@@ -124,8 +129,20 @@ const uploadBufferToCloudinary = async (
 
 export const uploadService = {
   async uploadSingle(file?: Express.Multer.File): Promise<UploadResult> {
-    if (!file) throw new Error("No file uploaded");
+    if (!file) throw new ORPCError("BAD_REQUEST", {
+      message: "file not found!"
+    });
 
+    const vectorize = await this.vectorizePins(file.buffer, file.originalname)
+    if(!vectorize){
+      throw new ORPCError("BAD_REQUEST", {
+        message: "invalid file"
+      })
+    }
+
+    const id = new ObjectId()
+    await uploadBufferToCloudinary(file.buffer, id.toString(), file.filename)
+    console.log(vectorize)
     return {
       url: file.path,
       filename: file.filename,
@@ -169,6 +186,15 @@ export const uploadService = {
             publicId,
             'image'
           );
+          console.log(file.buffer)
+          const vectorize = await this.vectorizePins(file.buffer, file.originalname)
+          await pinModel.updateOne({_id: pinId}, {
+            $set: { pin_vector: vectorize }
+          },
+          {
+            runValidators: true
+          }
+        )
 
           results.push({
             media_url: result.url,
@@ -176,6 +202,7 @@ export const uploadService = {
             format: result.format,
             resource_type: result.resource_type,
           });
+
         } else if (isVideo(file.mimetype)) {
           // Handle video upload
           const videoResult = await uploadBufferToCloudinary(
@@ -223,4 +250,33 @@ export const uploadService = {
 
     return results;
   },
+
+   async vectorizePins(buffer: Buffer, filename: string) {
+    try {
+      const formData = new FormData();
+      
+      // Append buffer to form data
+      formData.append('file', buffer, {
+        filename: filename,
+        contentType: 'image/jpeg' // or dynamically set based on file.mimetype
+      });
+
+      const response = await axios.post(
+        `http://127.0.0.1:8000/vectorize-pins`,
+        formData,
+        {
+          headers: {
+            ...formData.getHeaders(),
+          },
+        }
+      );
+
+      return response.data.vector;
+    } catch (error: any) {
+      throw new ORPCError("INTERNAL_SERVER_ERROR", {
+        message: `internal server error: ${error}`
+      });
+    }
+  }
+
 };

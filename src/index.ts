@@ -18,6 +18,8 @@ import { createContext, ExpressContext } from "./config/context.js";
 import upload from './config/multer.js';
 import { uploadController } from "./controllers/upload.controller.js";
 import { authMiddleware } from "./middlewares/auth.js";
+// Initialize Firebase Admin SDK
+import "./config/firebase.config.js";
 
 dotenv.config()
 const app: Express = express()
@@ -25,7 +27,8 @@ const port = process.env.PORT || 3000
 const env: string = process.env.NODE_ENV || ""
 const baseUrl = process.env.BASE_URL
 //middleware
-// app.use(helmet()) //secure headers
+const helmetMiddleware = (helmet as any)();
+app.use(helmetMiddleware) //secure headers
 app.use(cors()) //allow cors
 app.use(express.json()) //json parse
 app.use(morgan('combined')); // logging

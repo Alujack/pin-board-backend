@@ -7,6 +7,7 @@ export const createPinRequestSchema = z.object({
   title: z.string().min(1, "Title is required").max(255, "Title too long"),
   description: z.string().max(1000, "Description too long").optional(),
   link_url: z.string().url("Invalid URL format").optional(),
+  pin_vector: z.array(z.number())
 });
 
 // Request types for updating a pin
