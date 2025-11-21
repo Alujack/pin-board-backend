@@ -18,6 +18,7 @@ export const pinController = {
       throw handleError(error);
     }
   },
+
   // Get pins created by the authenticated user (with pagination)
   async getCreatedPins(query: PinQuery, context: any): Promise<PinListResponse> {
     try {

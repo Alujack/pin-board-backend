@@ -1,18 +1,32 @@
 import { ppr } from "../config/orpc.js";
 import { pinController } from "../controllers/pin.controller.js";
 import {
-  createPinRequestSchema,
   updatePinRequestSchema,
   pinQuerySchema,
   assignTagsRequestSchema,
 } from "../types/pin.type.js";
 import { pathIdZod } from "../types/common.js";
+import { personalizeController } from "../controllers/index.js";
 
 const path = "/pins";
 const tags = ["Pins"];
 
 export const pinRoute = {
   // Get pins with pagination and filtering
+
+  getAllPins: ppr([])
+    .route({
+      path: `${path}/all-pins`,
+      method: "GET",
+      tags: tags,
+    })
+    .input(pinQuerySchema)
+    .handler(async ({ input, context }) => {
+      const user = context.user._id
+      return await personalizeController.getPersonalizePins(user!);
+    }),
+
+
   getAll: ppr([])
     .route({
       path: `${path}`,
@@ -160,9 +174,9 @@ export const pinRoute = {
       tags: tags,
     })
     .input(pathIdZod)
-    .handler(async ({ input, context }:{input:any ,context: any}) => {
+    .handler(async ({ input }:{input:any ,context: any}) => {
       const id = input.id;
-      return await pinController.getMediaUrl(id, context);
+      return await pinController.getMediaUrl(id);
     }),
 
   // search endpoint
@@ -176,4 +190,15 @@ export const pinRoute = {
     .handler(async ({ input, context }:{input:any ,context: any}) => {
       return await pinController.getPins(input, context);
     }),
+
+    homePersonalize: ppr([])
+      .route({
+        path: `${path}/home-personalize`,
+        method: "GET",
+        tags: tags,
+      })
+      .input(pinQuerySchema)
+      .handler( async ({ input, context }) => {
+        return await pinController.getPins(input, context)
+      })
 };
