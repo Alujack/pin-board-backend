@@ -1,0 +1,120 @@
+### Manual API Tests for Pin Board Backend
+### Use with REST Client extension in VS Code or similar tools
+
+@baseUrl = http://localhost:3000/api
+@token = YOUR_AUTH_TOKEN_HERE
+
+### 1. Login (Get Auth Token)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "testpassword123"
+}
+
+### 2. Get Pins (to get a pinId for testing)
+GET {{baseUrl}}/pins?limit=5
+Authorization: Bearer {{token}}
+
+### 3. Get Comments for a Pin
+GET {{baseUrl}}/comment/getComments?pinId=68eb10063edcc8eb591d248c&page=1&limit=20&sort=newest
+Authorization: Bearer {{token}}
+
+### 4. Create a Comment
+POST {{baseUrl}}/comment/createComment
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pinId": "68eb10063edcc8eb591d248c",
+  "body": {
+    "content": "This is a test comment from manual testing"
+  }
+}
+
+### 5. Create a Reply Comment
+POST {{baseUrl}}/comment/createComment
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pinId": "68eb10063edcc8eb591d248c",
+  "body": {
+    "content": "This is a reply to a comment",
+    "parent_comment": "PARENT_COMMENT_ID_HERE"
+  }
+}
+
+### 6. Toggle Comment Like
+POST {{baseUrl}}/comment/toggleCommentLike
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "commentId": "COMMENT_ID_HERE"
+}
+
+### 7. Update Comment
+PUT {{baseUrl}}/comment/updateComment
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "commentId": "COMMENT_ID_HERE",
+  "content": "Updated comment content"
+}
+
+### 8. Delete Comment
+DELETE {{baseUrl}}/comment/deleteComment?commentId=COMMENT_ID_HERE
+Authorization: Bearer {{token}}
+
+### 9. Toggle Pin Like
+POST {{baseUrl}}/pinLike/togglePinLike
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pinId": "68eb10063edcc8eb591d248c"
+}
+
+### 10. Get Pin Likes
+GET {{baseUrl}}/pinLike/getPinLikes?pinId=68eb10063edcc8eb591d248c&page=1&limit=20
+Authorization: Bearer {{token}}
+
+### 11. Check if Pin is Liked
+GET {{baseUrl}}/pinLike/checkPinLiked?pinId=68eb10063edcc8eb591d248c
+Authorization: Bearer {{token}}
+
+### 12. Test without Auth (should fail with 401)
+POST {{baseUrl}}/comment/createComment
+Content-Type: application/json
+
+{
+  "pinId": "68eb10063edcc8eb591d248c",
+  "body": {
+    "content": "This should fail"
+  }
+}
+
+### 13. Test with invalid pinId (should fail with 400/404)
+POST {{baseUrl}}/pinLike/togglePinLike
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pinId": "invalid-pin-id"
+}
+
+### 14. Test with missing required fields (should fail with 400)
+POST {{baseUrl}}/comment/createComment
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pinId": "68eb10063edcc8eb591d248c",
+  "body": {
+    "content": ""
+  }
+}
+
