@@ -1,4 +1,4 @@
-import { public_permission, protected_permission } from "../config/orpc.js";
+import { public_permission, protected_permission, ppr } from "../config/orpc.js";
 import { commentController } from "../controllers/comment.controller.js";
 import {
     createCommentRequestSchema,
@@ -9,7 +9,7 @@ import z from "zod";
 
 export const commentRoute = {
     // Create a comment on a pin
-    createComment: protected_permission
+    createComment: ppr([])
         .route({
             path: "/comment/createComment",
             method: "POST",
@@ -39,7 +39,7 @@ export const commentRoute = {
         }),
 
     // Update a comment
-    updateComment: protected_permission
+    updateComment: ppr([])
         .route({
             path: "/comment/updateComment",
             method: "PUT",
@@ -54,7 +54,7 @@ export const commentRoute = {
         }),
 
     // Delete a comment
-    deleteComment: protected_permission
+    deleteComment: ppr([])
         .route({
             path: "/comment/deleteComment",
             method: "DELETE",
@@ -68,7 +68,7 @@ export const commentRoute = {
         }),
 
     // Toggle like on a comment
-    toggleCommentLike: protected_permission
+    toggleCommentLike: ppr([])
         .route({
             path: "/comment/toggleCommentLike",
             method: "POST",

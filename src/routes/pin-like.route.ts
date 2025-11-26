@@ -1,10 +1,10 @@
-import { public_permission, protected_permission } from "../config/orpc.js";
+import { public_permission, protected_permission, ppr } from "../config/orpc.js";
 import { pinLikeController } from "../controllers/pin-like.controller.js";
 import z from "zod";
 
 export const pinLikeRoute = {
     // Toggle like on a pin
-    togglePinLike: protected_permission
+    togglePinLike: ppr([])
         .route({
             path: "/pinLike/togglePinLike",
             method: "POST",

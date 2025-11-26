@@ -1,10 +1,10 @@
-import { public_permission, protected_permission } from "../config/orpc.js";
+import { public_permission, protected_permission, ppr } from "../config/orpc.js";
 import { followController } from "../controllers/follow.controller.js";
 import z from "zod";
 
 export const followRoute = {
     // Follow a user
-    followUser: protected_permission
+    followUser: ppr([])
         .route({
             path: "/follow/followUser",
             method: "POST",
@@ -18,7 +18,7 @@ export const followRoute = {
         }),
 
     // Unfollow a user
-    unfollowUser: protected_permission
+    unfollowUser: ppr([])
         .route({
             path: "/follow/unfollowUser",
             method: "POST",
@@ -78,7 +78,7 @@ export const followRoute = {
         }),
 
     // Get suggested users to follow
-    getSuggestedUsers: protected_permission
+    getSuggestedUsers: ppr([])
         .route({
             path: "/follow/getSuggestedUsers",
             method: "GET",

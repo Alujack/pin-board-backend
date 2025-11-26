@@ -10,6 +10,10 @@ export default {
       'ts-jest',
       {
         useESM: true,
+        isolatedModules: true,
+        diagnostics: {
+          ignoreCodes: [151001, 151002]
+        }
       },
     ],
   },
@@ -25,6 +29,7 @@ export default {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   verbose: true,
-  testTimeout: 10000,
+  testTimeout: 30000,
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
 };
 

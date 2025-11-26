@@ -1,10 +1,10 @@
-import { public_permission, protected_permission } from "../config/orpc.js";
+import { public_permission, protected_permission, ppr } from "../config/orpc.js";
 import { feedController } from "../controllers/feed.controller.js";
 import z from "zod";
 
 export const feedRoute = {
     // Get personalized feed
-    getPersonalizedFeed: protected_permission
+    getPersonalizedFeed: ppr([])
         .route({
             path: "/feed/getPersonalizedFeed",
             method: "GET",
