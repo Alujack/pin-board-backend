@@ -1,4 +1,4 @@
-import { public_permission, protected_permission } from "../config/orpc.js";
+import { public_permission, protected_permission, ppr } from "../config/orpc.js";
 import { commentController } from "../controllers/comment.controller.js";
 import {
     createCommentRequestSchema,
@@ -9,7 +9,7 @@ import z from "zod";
 
 export const commentRoute = {
     // Create a comment on a pin
-    createComment: protected_permission
+    createComment: ppr([])
         .route({
             path: "/comment/createComment",
             method: "POST",
@@ -30,31 +30,31 @@ export const commentRoute = {
             method: "GET",
             tags: ["Comment"]
         })
-        .input(z.object({
+        .input(commentQuerySchema.extend({
             pinId: z.string(),
-            query: commentQuerySchema,
         }))
         .handler(async ({ input, context }: any) => {
-            return await commentController.getComments(input.pinId, input.query, context);
+            const { pinId, ...query } = input;
+            return await commentController.getComments(pinId, query as any, context);
         }),
 
     // Update a comment
-    updateComment: protected_permission
+    updateComment: ppr([])
         .route({
             path: "/comment/updateComment",
             method: "PUT",
             tags: ["Comment"]
         })
-        .input(z.object({
+        .input(updateCommentRequestSchema.extend({
             commentId: z.string(),
-            body: updateCommentRequestSchema,
         }))
         .handler(async ({ input, context }: any) => {
-            return await commentController.updateComment(input.commentId, input.body, context);
+            const { commentId, ...body } = input;
+            return await commentController.updateComment(commentId, body as any, context);
         }),
 
     // Delete a comment
-    deleteComment: protected_permission
+    deleteComment: ppr([])
         .route({
             path: "/comment/deleteComment",
             method: "DELETE",
@@ -68,7 +68,7 @@ export const commentRoute = {
         }),
 
     // Toggle like on a comment
-    toggleCommentLike: protected_permission
+    toggleCommentLike: ppr([])
         .route({
             path: "/comment/toggleCommentLike",
             method: "POST",

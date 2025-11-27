@@ -1,10 +1,10 @@
-import { public_permission, protected_permission } from "../config/orpc.js";
+import { public_permission, protected_permission, ppr } from "../config/orpc.js";
 import { boardCollaboratorController } from "../controllers/board-collaborator.controller.js";
 import z from "zod";
 
 export const boardCollaboratorRoute = {
     // Add collaborator to board
-    addCollaborator: protected_permission
+    addCollaborator: ppr([])
         .route({
             path: "/boardCollaborator/addCollaborator",
             method: "POST",
@@ -20,7 +20,7 @@ export const boardCollaboratorRoute = {
         }),
 
     // Remove collaborator from board
-    removeCollaborator: protected_permission
+    removeCollaborator: ppr([])
         .route({
             path: "/boardCollaborator/removeCollaborator",
             method: "POST",
@@ -51,7 +51,7 @@ export const boardCollaboratorRoute = {
         }),
 
     // Update collaborator role
-    updateCollaboratorRole: protected_permission
+    updateCollaboratorRole: ppr([])
         .route({
             path: "/boardCollaborator/updateCollaboratorRole",
             method: "PUT",

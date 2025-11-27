@@ -1,4 +1,4 @@
-import { public_permission, protected_permission } from "../config/orpc.js"
+import { public_permission, protected_permission, ppr } from "../config/orpc.js"
 import { userController } from "../controllers/index.js"
 import { idZod } from "../types/common.js"
 import { userQuery } from "../types/user.type.js"
@@ -47,7 +47,7 @@ export const userRoute = {
     }),
 
     // Get current user profile
-    getCurrentUser: protected_permission
+    getCurrentUser: ppr([])
     .route({
         path: `${path}/me`,
         method: "GET",
@@ -58,7 +58,7 @@ export const userRoute = {
     }),
 
     // Update user profile
-    updateProfile: protected_permission
+    updateProfile: ppr([])
     .route({
         path: `${path}/profile`,
         method: "PUT",
