@@ -7,3 +7,8 @@ PIN_API_DOCUMENTATION.md
 FIREBASE_PUSH_NOTIFICATION_SETUP.md
 # Firebase service account credentials (sensitive)
 src/firebase/*.json
+coverage
+.DS_Store
+.vscode
+.idea
+dist
