@@ -51,6 +51,8 @@ export const pinResponseSchema = zPin.extend({
   }).optional(),
   thumbnail_url: z.string().optional(),
   media: z.array(mediaItemSchema).optional(),
+  likesCount: z.number().optional(),
+  isLiked: z.boolean().optional(),
 });
 
 
