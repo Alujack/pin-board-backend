@@ -127,7 +127,7 @@ export const pinService = {
     userId: string
   ): Promise<{ success: boolean; message: string; data: PinResponse }> {
     try {
-      console.log("userId ==> ",userId, id)
+      // console.log("userId ==> ",userId, id)
       const pin = await pinModel.findById(id).populate([
         { path: "user", select: "username profile_picture" },
         { path: "board", select: "name is_public" },
@@ -177,6 +177,43 @@ export const pinService = {
         likesCount,
         isLiked,
         inter
+      };
+
+      return ResponseUtil.success(
+        pinWithData as unknown as PinResponse,
+        "Pin retrieved successfully"
+      );
+    } catch (error: any) {
+      throw handleError(error);
+    }
+  },
+
+  async getPinByIdPersonalize(
+    id: string,
+  ): Promise<{ success: boolean; message: string; data: PinResponse }> {
+    try {
+      // console.log("userId ==> ",userId, id)
+      const pin = await pinModel.findById(id).populate([
+        { path: "user", select: "username profile_picture" },
+        { path: "board", select: "name is_public" },
+      ]).select("-pin_vector");
+
+      if (!pin) {
+        throw new NotFoundError("Pin not found");
+      }
+
+      // Fetch media for the pin
+      const media = await mediaService.getMediaByPinId(pin._id.toString());
+
+      // Fetch like information
+      const likesCount = await pinLikeModel.countDocuments({ pin: pin._id });
+      let isLiked = false;
+
+      const pinWithData = {
+        ...pin.toObject(),
+        media,
+        likesCount,
+        isLiked,
       };
 
       return ResponseUtil.success(
