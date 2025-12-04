@@ -12,6 +12,7 @@ const zInteraction = zModel.extend({
         InteractionTypeEnum.CLICK,
         InteractionTypeEnum.SAVE,
         InteractionTypeEnum.SHARE,
+        InteractionTypeEnum.COMMENT
     ])),
     createdAt: z.date().default(() => new Date()),
 }).omit({ _id: true }).extend({

@@ -2,7 +2,6 @@ import { ORPCError } from "@orpc/client";
 import { pinModel } from "../models/pin.model.js";
 import { followModel } from "../models/follow.model.js";
 import { pinLikeModel } from "../models/pin-like.model.js";
-import { interactionModel } from "../models/interaction.model.js";
 import { mediaService } from "../services/media/media.service.js";
 
 export const feedController = {
