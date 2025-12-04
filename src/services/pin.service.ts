@@ -4,6 +4,7 @@ import { userModel } from "../models/user.model.js";
 import { tagModel } from "../models/tag.model.js";
 import { pinTagModel } from "../models/pin-tag.model.js";
 import { interactionModel } from "../models/interaction.model.js";
+import { pinLikeModel } from "../models/pin-like.model.js";
 import { mediaService } from "./media/media.service.js";
 import { notificationService } from "./notification.service.js";
 import {
@@ -80,19 +81,27 @@ export const pinService = {
         .skip(skip)
         .limit(limit);
 
-      // Fetch media for each pin
-      const pinsWithMedia = await Promise.all(
+      // Fetch media and like information for each pin
+      const pinsWithData = await Promise.all(
         pins.map(async (pin) => {
           const media = await mediaService.getMediaByPinId(pin._id.toString());
+          const likesCount = await pinLikeModel.countDocuments({ pin: pin._id });
+          let isLiked = false;
+          if (userId) {
+            const likeDoc = await pinLikeModel.findOne({ pin: pin._id, user: userId });
+            isLiked = !!likeDoc;
+          }
           return {
             ...pin.toObject(),
             media,
+            likesCount,
+            isLiked,
           };
         })
       );
 
       return ResponseUtil.successWithPagination(
-        pinsWithMedia as unknown as PinResponse[],
+        pinsWithData as unknown as PinResponse[],
         {
           page,
           limit,
@@ -125,13 +134,24 @@ export const pinService = {
 
       // Fetch media for the pin
       const media = await mediaService.getMediaByPinId(pin._id.toString());
-      const pinWithMedia = {
+      
+      // Fetch like information
+      const likesCount = await pinLikeModel.countDocuments({ pin: pin._id });
+      let isLiked = false;
+      if (userId) {
+        const likeDoc = await pinLikeModel.findOne({ pin: pin._id, user: userId });
+        isLiked = !!likeDoc;
+      }
+      
+      const pinWithData = {
         ...pin.toObject(),
         media,
+        likesCount,
+        isLiked,
       };
 
       return ResponseUtil.success(
-        pinWithMedia as unknown as PinResponse,
+        pinWithData as unknown as PinResponse,
         "Pin retrieved successfully"
       );
     } catch (error: any) {
