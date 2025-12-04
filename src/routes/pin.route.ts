@@ -23,7 +23,7 @@ export const pinRoute = {
     .input(pinQuerySchema)
     .handler(async ({ input, context }) => {
       const user = context.user._id
-      return await personalizeController.getPersonalizePins(user!);
+      return await personalizeController.getPersonalizePins(user!, context);
     }),
 
 
