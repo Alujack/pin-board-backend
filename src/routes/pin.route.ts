@@ -46,7 +46,7 @@ export const pinRoute = {
       tags: tags,
     })
     .input(pathIdZod)
-    .handler(async ({ input, context }:{input: any, context: any}) => {
+    .handler(async ({ input, context }) => {
       const id = input.id;
       return await pinController.getPinById(id, context);
     }),
