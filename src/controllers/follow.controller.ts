@@ -161,7 +161,7 @@ export const followController = {
     },
 
     // Check if user is following another user
-    async checkFollowing(followingId: string, context: any): Promise<{ success: boolean; isFollowing: boolean; followersCount: number; followingCount: number }> {
+    async checkFollowing(followingId: string, context: any): Promise<{ success: boolean; data: { following: boolean; status: string; followersCount: number; followingCount: number } }> {
         try {
             const userId = context.user?._id;
 
@@ -171,9 +171,25 @@ export const followController = {
             if (!userId) {
                 return {
                     success: true,
-                    isFollowing: false,
-                    followersCount,
-                    followingCount,
+                    data: {
+                        following: false,
+                        status: "not_following",
+                        followersCount,
+                        followingCount,
+                    }
+                };
+            }
+
+            // Check if checking own profile
+            if (userId.toString() === followingId.toString()) {
+                return {
+                    success: true,
+                    data: {
+                        following: false,
+                        status: "self",
+                        followersCount,
+                        followingCount,
+                    }
                 };
             }
 
@@ -184,9 +200,12 @@ export const followController = {
 
             return {
                 success: true,
-                isFollowing: !!follow,
-                followersCount,
-                followingCount,
+                data: {
+                    following: !!follow,
+                    status: !!follow ? "following" : "not_following",
+                    followersCount,
+                    followingCount,
+                }
             };
         } catch (error: any) {
             throw new ORPCError("INTERNAL_SERVER_ERROR", { message: error.message });
