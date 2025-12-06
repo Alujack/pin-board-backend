@@ -2,9 +2,6 @@ import { boardModel } from "../models/board.model.js";
 import { pinModel } from "../models/pin.model.js";
 import { mediaService } from "../services/media/media.service.js";
 import { 
-  createBoardRequestSchema, 
-  updateBoardRequestSchema,
-  boardQuerySchema,
   CreateBoardRequest,
   UpdateBoardRequest,
   BoardQuery,

@@ -20,6 +20,7 @@ import { uploadController } from "./controllers/upload.controller.js";
 import { authMiddleware } from "./middlewares/auth.js";
 // Initialize Firebase Admin SDK
 import "./config/firebase.config.js";
+import chalk from "chalk";
 
 dotenv.config()
 const app: Express = express()
@@ -31,10 +32,28 @@ const helmetMiddleware = (helmet as any)();
 app.use(helmetMiddleware) //secure headers
 app.use(cors()) //allow cors
 app.use(express.json()) //json parse
-app.use(morgan('combined')); // logging
 app.use(express.urlencoded({ extended: true })); //parse body
 databaseConnection()
 
+app.use((req, res, next) => {
+  const start = Date.now();
+  
+  // Log request
+  console.log(chalk.blue(`request: → ${req.method}`) + ` ${req.originalUrl}`);
+  
+  // Log response when finished
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const statusColor = res.statusCode >= 400 ? chalk.red : chalk.green;
+    console.log(
+      statusColor(`response: → ${res.statusCode}`) + 
+      ` ${req.method} ${req.originalUrl} ` +
+      chalk.gray(`(${duration}ms)`)
+    );
+  });
+  
+  next();
+});
 
 // Upload endpoints
 app.post('/api/upload/single', authMiddleware, upload.single('image'), uploadController.uploadSingle);
@@ -173,5 +192,6 @@ app.get("/api-docs", async (req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
-  console.log(`😭😭😭 => app is running on http://localhost:${port}`)
+  const server = chalk.bgGreen.black(`http://localhost:${port}`)
+  console.log(`app is running on 🚀🚀 ${server}`)
 })

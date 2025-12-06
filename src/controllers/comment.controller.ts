@@ -2,7 +2,7 @@ import { ORPCError } from "@orpc/client";
 import { commentModel } from "../models/comment.model.js";
 import { pinModel } from "../models/pin.model.js";
 import { notificationModel } from "../models/notification.model.js";
-import { NotificationTypeEnum } from "../types/enums.js";
+import { InteractionTypeEnum, NotificationTypeEnum } from "../types/enums.js";
 import { ObjectId } from "mongodb";
 import {
     CreateCommentRequest,
@@ -11,6 +11,8 @@ import {
     CommentListResponse,
     CommentResponse
 } from "../types/comment.type.js";
+import { interactionModel } from "../models/interaction.model.js";
+import { interactionController } from "./index.js";
 
 export const commentController = {
     // Create a new comment
@@ -49,6 +51,28 @@ export const commentController = {
             await newComment.populate([
                 { path: "user", select: "username profile_picture" }
             ]);
+
+            if (newComment) {
+                try {
+                    const result = await interactionModel.findOne({
+                        user: userId,
+                        pin: pinId
+                    })
+                    if(result) {
+                        await interactionModel.updateOne({
+                            _id: result._id
+                        }, {
+                            $push: {
+                                interactionType: InteractionTypeEnum.COMMENT
+                            }
+                        })
+                    } else {
+                        await interactionController.createOne({pin: pinId, interactionType: [InteractionTypeEnum.CLICK]}, userId)
+                    }
+                } catch (err: any) {
+                    throw new ORPCError(err)
+                }
+            }
 
             // Create notification for pin owner (if not commenting on own pin)
             const pinUserId = typeof pin.user === 'object' && '_id' in pin.user ? pin.user._id : pin.user;
