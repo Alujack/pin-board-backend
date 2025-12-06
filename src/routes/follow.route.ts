@@ -64,7 +64,7 @@ export const followRoute = {
         }),
 
     // Check if user is following another user
-    checkFollowing: public_permission
+    checkFollowing: ppr([])
         .route({
             path: "/follow/checkFollowing",
             method: "GET",
