@@ -435,7 +435,8 @@ export const pinService = {
               pinId,
               pin.title || 'Untitled Pin',
               pin.user.toString(),
-              saver.username
+              saver.username,
+              userId
             );
           }
         } catch (err) {

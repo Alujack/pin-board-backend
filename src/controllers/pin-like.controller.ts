@@ -1,8 +1,8 @@
 import { ORPCError } from "@orpc/client";
 import { pinLikeModel } from "../models/pin-like.model.js";
 import { pinModel } from "../models/pin.model.js";
-import { notificationModel } from "../models/notification.model.js";
-import { InteractionTypeEnum, NotificationTypeEnum } from "../types/enums.js";
+import { notificationService } from "../services/notification.service.js";
+import { InteractionTypeEnum } from "../types/enums.js";
 import { ObjectId } from "mongodb";
 import { interactionModel } from "../models/interaction.model.js";
 import { interactionController } from "./index.js";
@@ -40,40 +40,38 @@ export const pinLikeController = {
                 });
                 isLiked = true;
 
-                //update interaction
-                if (isLiked) {
-                    try {
-                        const inter = await interactionModel.findOne({
-                            user: userId,
-                            pin: pinId,
-                        })
-                        if (inter) {
-                            if (!inter.interactionType.includes(InteractionTypeEnum.LIKE)) {
-                                inter.interactionType.push(InteractionTypeEnum.LIKE)
-                                await inter.save()
-                            }
-                        } else {
-                            await interactionController.createOne({pin: pinId, interactionType: [InteractionTypeEnum.CLICK]}, userId)
+                // Update interaction tracking
+                try {
+                    const inter = await interactionModel.findOne({
+                        user: userId,
+                        pin: pinId,
+                    });
+                    if (inter) {
+                        if (!inter.interactionType.includes(InteractionTypeEnum.LIKE)) {
+                            inter.interactionType.push(InteractionTypeEnum.LIKE);
+                            await inter.save();
                         }
-                    } catch (err: any) {
-                        throw new ORPCError(err)
+                    } else {
+                        await interactionController.createOne({pin: pinId, interactionType: [InteractionTypeEnum.CLICK]}, userId);
                     }
+                } catch (err: any) {
+                    console.warn("Could not update interaction", err);
                 }
 
-                // Create notification for pin owner (if not liking own pin)
+                // Send notification for pin owner (if not liking own pin)
                 const pinUserId = typeof pin.user === 'object' && '_id' in pin.user ? pin.user._id : pin.user;
                 if (pinUserId.toString() !== userId.toString()) {
-                    await notificationModel.create({
-                        _id: new ObjectId(),
-                        user: pinUserId,
-                        from_user: userId,
-                        type: NotificationTypeEnum.PIN_LIKED,
-                        content: `${context.user.username} liked your pin`,
-                        metadata: {
-                            pin_id: pinId,
-                            user_id: userId.toString(),
-                        },
-                    });
+                    try {
+                        await notificationService.notifyPinLiked(
+                            pinId,
+                            pin.title || 'Untitled Pin',
+                            pinUserId.toString(),
+                            context.user.username,
+                            userId.toString()
+                        );
+                    } catch (err) {
+                        console.warn("Could not send pin liked notification", err);
+                    }
                 }
             }
 

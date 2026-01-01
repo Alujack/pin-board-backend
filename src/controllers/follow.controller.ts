@@ -1,8 +1,7 @@
 import { ORPCError } from "@orpc/client";
 import { followModel } from "../models/follow.model.js";
 import { userModel } from "../models/user.model.js";
-import { notificationModel } from "../models/notification.model.js";
-import { NotificationTypeEnum } from "../types/enums.js";
+import { notificationService } from "../services/notification.service.js";
 import { ObjectId } from "mongodb";
 
 export const followController = {
@@ -42,17 +41,16 @@ export const followController = {
                 following: followingId,
             });
 
-            // Create notification
-            await notificationModel.create({
-                _id: new ObjectId(),
-                user: followingId,
-                from_user: userId,
-                type: NotificationTypeEnum.NEW_FOLLOWER,
-                content: `${context.user.username} started following you`,
-                metadata: {
-                    user_id: userId.toString(),
-                },
-            });
+            // Send notification
+            try {
+                await notificationService.notifyNewFollower(
+                    followingId,
+                    context.user.username,
+                    userId.toString()
+                );
+            } catch (err) {
+                console.warn("Could not send follow notification", err);
+            }
 
             return {
                 success: true,

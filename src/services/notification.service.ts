@@ -9,6 +9,7 @@ export interface NotificationData {
   title: string;
   body: string;
   data?: Record<string, string>;
+  fromUserId?: string;
 }
 
 export const notificationService = {
@@ -64,6 +65,7 @@ export const notificationService = {
         content: notificationData.body,
         is_read: false,
         metadata: notificationData.data,
+        from_user: notificationData.fromUserId || notificationData.data?.userId || undefined,
       });
 
       // Send push notification if user has FCM token
@@ -90,7 +92,8 @@ export const notificationService = {
     pinId: string,
     pinTitle: string,
     pinOwnerId: string,
-    saverUsername: string
+    saverUsername: string,
+    saverId: string
   ): Promise<void> {
     try {
       await this.createAndSendNotification({
@@ -102,7 +105,9 @@ export const notificationService = {
           pinId,
           type: 'pin_saved',
           navigateTo: `/pins/${pinId}`,
+          userId: saverId,
         },
+        fromUserId: saverId,
       });
     } catch (error: any) {
       console.error('❌ Error notifying pin saved:', error);
@@ -117,7 +122,8 @@ export const notificationService = {
     pinId: string,
     pinTitle: string,
     pinOwnerId: string,
-    likerUsername: string
+    likerUsername: string,
+    likerId: string
   ): Promise<void> {
     try {
       await this.createAndSendNotification({
@@ -129,10 +135,94 @@ export const notificationService = {
           pinId,
           type: 'pin_liked',
           navigateTo: `/pins/${pinId}`,
+          userId: likerId,
         },
+        fromUserId: likerId,
       });
     } catch (error: any) {
       console.error('❌ Error notifying pin liked:', error);
+    }
+  },
+
+  /**
+   * Send notification when someone comments on a pin
+   */
+  async notifyPinCommented(
+    pinId: string,
+    pinTitle: string,
+    pinOwnerId: string,
+    commenterUsername: string,
+    commenterId: string,
+    commentId: string,
+    isReply: boolean = false,
+    parentCommentOwnerId?: string
+  ): Promise<void> {
+    try {
+      // Notify pin owner if not commenting on own pin
+      if (pinOwnerId !== commenterId) {
+        await this.createAndSendNotification({
+          userId: pinOwnerId,
+          type: isReply ? NotificationTypeEnum.COMMENT_REPLIED : NotificationTypeEnum.PIN_COMMENTED,
+          title: isReply ? '💬 Comment Reply!' : '💬 New Comment!',
+          body: isReply 
+            ? `${commenterUsername} replied to your comment`
+            : `${commenterUsername} commented on your pin "${pinTitle}"`,
+          data: {
+            pinId,
+            commentId,
+            type: isReply ? 'comment_replied' : 'pin_commented',
+            userId: commenterId,
+            navigateTo: `/pins/${pinId}`,
+          },
+          fromUserId: commenterId,
+        });
+      }
+
+      // If it's a reply, also notify the parent comment owner
+      if (isReply && parentCommentOwnerId && parentCommentOwnerId !== commenterId) {
+        await this.createAndSendNotification({
+          userId: parentCommentOwnerId,
+          type: NotificationTypeEnum.COMMENT_REPLIED,
+          title: '💬 Comment Reply!',
+          body: `${commenterUsername} replied to your comment`,
+          data: {
+            pinId,
+            commentId,
+            type: 'comment_replied',
+            userId: commenterId,
+            navigateTo: `/pins/${pinId}`,
+          },
+          fromUserId: commenterId,
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ Error notifying pin commented:', error);
+    }
+  },
+
+  /**
+   * Send notification when someone follows a user
+   */
+  async notifyNewFollower(
+    followedUserId: string,
+    followerUsername: string,
+    followerId: string
+  ): Promise<void> {
+    try {
+      await this.createAndSendNotification({
+        userId: followedUserId,
+        type: NotificationTypeEnum.NEW_FOLLOWER,
+        title: '👤 New Follower!',
+        body: `${followerUsername} started following you`,
+        data: {
+          type: 'new_follower',
+          userId: followerId,
+          navigateTo: `/users/${followerId}`,
+        },
+        fromUserId: followerId,
+      });
+    } catch (error: any) {
+      console.error('❌ Error notifying new follower:', error);
     }
   },
 
