@@ -278,7 +278,11 @@ export const notificationService = {
     limit: number = 20
   ): Promise<any> {
     try {
+      console.log('🔍 Getting notifications for userId:', userId, 'type:', typeof userId);
+      
       const skip = (page - 1) * limit;
+      
+      // Try to find notifications - handle both ObjectId and string formats
       const notifications = await notificationModel
         .find({ user: userId })
         .populate([
@@ -286,12 +290,33 @@ export const notificationService = {
         ])
         .sort({ created_at: -1 })
         .skip(skip)
-        .limit(limit);
+        .limit(limit)
+        .lean(); // Use lean() for better performance
 
       const total = await notificationModel.countDocuments({ user: userId });
 
+      console.log('🔍 Found notifications:', notifications.length, 'out of', total, 'total');
+
+      // Convert MongoDB _id to string for consistency
+      const formattedNotifications = notifications.map((notif: any) => {
+        // Handle both created_at and createdAt (from timestamps)
+        const createdAt = notif.created_at || notif.createdAt || new Date();
+        const createdDate = createdAt instanceof Date ? createdAt : new Date(createdAt);
+        
+        return {
+          ...notif,
+          _id: notif._id.toString(),
+          user: notif.user.toString(),
+          from_user: notif.from_user ? {
+            ...notif.from_user,
+            _id: notif.from_user._id.toString()
+          } : null,
+          created_at: createdDate.toISOString()
+        };
+      });
+
       return {
-        notifications,
+        notifications: formattedNotifications,
         pagination: {
           page,
           limit,
