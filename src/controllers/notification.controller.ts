@@ -49,11 +49,15 @@ export const notificationController = {
       const page = parseInt(query.page) || 1;
       const limit = Math.min(parseInt(query.limit) || 20, 100);
 
+      console.log('📥 Getting notifications for user:', userId, 'page:', page, 'limit:', limit);
+
       const result = await notificationService.getUserNotifications(
         userId,
         page,
         limit
       );
+
+      console.log('📥 Found notifications:', result.notifications.length, 'total:', result.pagination.total);
 
       return ResponseUtil.successWithPagination(
         result.notifications,
@@ -61,6 +65,7 @@ export const notificationController = {
         "Notifications retrieved successfully"
       );
     } catch (error: any) {
+      console.error('❌ Error in getNotifications controller:', error);
       throw handleError(error);
     }
   },

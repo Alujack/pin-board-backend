@@ -51,6 +51,14 @@ export const notificationService = {
    */
   async createAndSendNotification(notificationData: NotificationData): Promise<void> {
     try {
+      console.log('📬 Creating notification:', {
+        userId: notificationData.userId,
+        type: notificationData.type,
+        title: notificationData.title,
+        body: notificationData.body,
+        fromUserId: notificationData.fromUserId
+      });
+
       // Get user's FCM token
       const user = await userModel.findById(notificationData.userId);
       if (!user) {
@@ -59,7 +67,7 @@ export const notificationService = {
       }
 
       // Create notification record in database
-      await notificationModel.create({
+      const notification = await notificationModel.create({
         user: notificationData.userId,
         type: notificationData.type,
         content: notificationData.body,
@@ -68,14 +76,23 @@ export const notificationService = {
         from_user: notificationData.fromUserId || notificationData.data?.userId || undefined,
       });
 
+      console.log('✅ Notification created in DB:', {
+        notificationId: notification._id,
+        userId: notificationData.userId,
+        type: notificationData.type
+      });
+
       // Send push notification if user has FCM token
       if (user.fcm_token) {
-        await this.sendPushNotification(
+        const sent = await this.sendPushNotification(
           user.fcm_token,
           notificationData.title,
           notificationData.body,
           notificationData.data
         );
+        if (sent) {
+          console.log('✅ Push notification sent successfully');
+        }
       } else {
         console.log('ℹ️ User has no FCM token, notification saved to DB only');
       }
@@ -264,6 +281,9 @@ export const notificationService = {
       const skip = (page - 1) * limit;
       const notifications = await notificationModel
         .find({ user: userId })
+        .populate([
+          { path: "from_user", select: "username profile_picture _id" }
+        ])
         .sort({ created_at: -1 })
         .skip(skip)
         .limit(limit);
