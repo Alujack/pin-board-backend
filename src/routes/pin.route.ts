@@ -22,8 +22,12 @@ export const pinRoute = {
     })
     .input(pinQuerySchema)
     .handler(async ({ input, context }) => {
-      const user = context.user._id
-      return await personalizeController.getPersonalizePins(user!, context);
+      const userId = context.user?._id?.toString() || null;
+      if (!userId) {
+        // If user is not authenticated, return regular pins without personalization
+        return await pinController.getPins(input, context);
+      }
+      return await personalizeController.getPersonalizePins(userId, context);
     }),
 
 

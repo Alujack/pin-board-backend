@@ -28,16 +28,23 @@ export class PersonalizeControllr {
             const scoreMap = new Map<string, number>()
             
             if (interactions.length > 0) {
-                // Calculate personalized vector from interactions
-                const vector = await this.calculateAverageInteraction(interactions)
-
-                // Calculate scores for pins (excluding user's own pins)
-                pinsForScoring.forEach((pin) => {
-                    if (pin.pin_vector && Array.isArray(pin.pin_vector)) {
-                        let res = this.cosineSimilarity(vector, pin.pin_vector)
-                        scoreMap.set(pin._id.toString(), res)
+                try {
+                    // Calculate personalized vector from interactions
+                    const vector = await this.calculateAverageInteraction(interactions)
+                    
+                    if (vector && Array.isArray(vector)) {
+                        // Calculate scores for pins (excluding user's own pins)
+                        pinsForScoring.forEach((pin) => {
+                            if (pin.pin_vector && Array.isArray(pin.pin_vector) && pin.pin_vector.length === vector.length) {
+                                let res = this.cosineSimilarity(vector, pin.pin_vector)
+                                scoreMap.set(pin._id.toString(), res)
+                            }
+                        })
                     }
-                })
+                } catch (error) {
+                    // If vector calculation fails, continue without personalization
+                    console.error("Error calculating personalized vector:", error)
+                }
             }
             // If no interactions, all pins will have score 0 and be sorted by createdAt
 
@@ -105,21 +112,31 @@ export class PersonalizeControllr {
 
     async calculateAverageInteraction(interactions: TypeInteraction[]) {
         if (interactions.length == 1) {
-            const interact = await pinModel.findOne({ _id: interactions[0]._id }).select("pin_vector")
-            return interact?.pin_vector
-
+            const interact = await pinModel.findOne({ _id: interactions[0].pin }).select("pin_vector")
+            if (!interact || !interact.pin_vector) {
+                throw new Error("Pin vector not found for interaction")
+            }
+            return interact.pin_vector
         }
         const values = await Promise.all(interactions.map(async (interaction) => {
             return await pinModel.findOne({ _id: interaction.pin }).select("pin_vector")
         }))
+        
+        // Filter out null values
+        const validValues = values.filter(v => v && v.pin_vector && Array.isArray(v.pin_vector))
+        if (validValues.length === 0) {
+            throw new Error("No valid pin vectors found for interactions")
+        }
+        
         const averagePin: number[] = []
-        // console.log(values)
-        for (let i = 0; i < values[0]!.pin_vector!.length; i++) {
+        const vectorLength = validValues[0]!.pin_vector!.length
+        
+        for (let i = 0; i < vectorLength; i++) {
             let total = 0
-            for (let value of values) {
+            for (let value of validValues) {
                 total += value!.pin_vector![i]
             }
-            averagePin[i] = total / values.length
+            averagePin[i] = total / validValues.length
         }
         return averagePin
     }
