@@ -29,9 +29,15 @@ const zNotification = zModel.extend({
         action: z.string().optional(),
     }).optional(),
     created_at: z.date().default(() => new Date()),
+}).omit({ _id: true }).extend({
+    _id: zId().optional(), // Make _id optional so Mongoose can auto-generate it
 })
 
 const schema = zodSchema(zNotification, schemaOptions)
+// Configure _id path to be optional so Mongoose can auto-generate it
+if (schema.paths._id) {
+  schema.paths._id.required(false);
+}
 const notificationModel = model("Notification", schema)
 export { zNotification, notificationModel };
 export type TypeNotification = z.infer<typeof zNotification>

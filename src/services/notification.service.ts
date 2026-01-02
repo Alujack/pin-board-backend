@@ -81,8 +81,8 @@ export const notificationService = {
         notificationDataToSave.from_user = notificationData.fromUserId || notificationData.data?.userId;
       }
       
-      const notification = new notificationModel(notificationDataToSave);
-      await notification.save();
+      // Use create() which properly handles _id auto-generation
+      const notification = await notificationModel.create(notificationDataToSave);
 
       console.log('✅ Notification created in DB:', {
         notificationId: notification._id,
