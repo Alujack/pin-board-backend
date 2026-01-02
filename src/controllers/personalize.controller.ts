@@ -4,6 +4,7 @@ import { pinModel } from "../models/pin.model.js";
 import { ZodIntersection } from "zod/v4";
 import { pinController } from "./pin.controller.js";
 import { pinService } from "../services/pin.service.js";
+import { ResponseUtil } from "../utils/response.util.js";
 
 export class PersonalizeControllr {
     async getPersonalizePins(userId: string, context: any) {
@@ -39,13 +40,26 @@ export class PersonalizeControllr {
 
             score.sort((a, b) => b.score - a.score)
             console.log(score)
-            const personalizedPins = await Promise.all(
+            const personalizedPinsResponses = await Promise.all(
                 score.map(async (item) => {
                     return await pinService.getPinByIdPersonalize(item.pinId)
                 })
             )
 
-            return personalizedPins
+            // Extract the pin data from each response
+            const personalizedPins = personalizedPinsResponses.map((response) => response.data)
+            
+            // Return in the same format as getPins (PinListResponse) using ResponseUtil
+            return ResponseUtil.successWithPagination(
+                personalizedPins,
+                {
+                    page: 1,
+                    limit: personalizedPins.length,
+                    total: personalizedPins.length,
+                    totalPages: 1
+                },
+                "Personalized pins retrieved successfully"
+            )
         } catch (err: any) {
             throw new ORPCError(err)
         }
