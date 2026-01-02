@@ -29,8 +29,6 @@ const zNotification = zModel.extend({
         action: z.string().optional(),
     }).optional(),
     created_at: z.date().default(() => new Date()),
-}).omit({ _id: true }).extend({
-    _id: zId().optional(),
 })
 
 const schema = zodSchema(zNotification, schemaOptions)

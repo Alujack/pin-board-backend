@@ -67,14 +67,22 @@ export const notificationService = {
       }
 
       // Create notification record in database
-      const notification = await notificationModel.create({
+      // Don't pass _id - let Mongoose auto-generate it
+      const notificationDataToSave: any = {
         user: notificationData.userId,
         type: notificationData.type,
         content: notificationData.body,
         is_read: false,
         metadata: notificationData.data,
-        from_user: notificationData.fromUserId || notificationData.data?.userId || undefined,
-      });
+      };
+      
+      // Only add from_user if it exists
+      if (notificationData.fromUserId || notificationData.data?.userId) {
+        notificationDataToSave.from_user = notificationData.fromUserId || notificationData.data?.userId;
+      }
+      
+      const notification = new notificationModel(notificationDataToSave);
+      await notification.save();
 
       console.log('✅ Notification created in DB:', {
         notificationId: notification._id,
