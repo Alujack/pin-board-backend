@@ -23,13 +23,29 @@ export const notificationService = {
     data?: Record<string, string>
   ): Promise<boolean> {
     try {
+      // Ensure all data values are strings (FCM requirement)
+      const stringData: Record<string, string> = {};
+      if (data) {
+        for (const [key, value] of Object.entries(data)) {
+          stringData[key] = String(value);
+        }
+      }
+
       const message = {
         notification: {
           title,
           body,
         },
-        data: data || {},
+        data: stringData,
         token: fcmToken,
+        android: {
+          priority: 'high' as const,
+        },
+        apns: {
+          headers: {
+            'apns-priority': '10',
+          },
+        },
       };
 
       const response = await messaging.send(message);
@@ -37,6 +53,11 @@ export const notificationService = {
       return true;
     } catch (error: any) {
       console.error('❌ Error sending push notification:', error);
+      console.error('❌ Error details:', {
+        code: error.code,
+        message: error.message,
+        fcmToken: fcmToken?.substring(0, 20) + '...',
+      });
       // If token is invalid, we might want to remove it from user
       if (error.code === 'messaging/invalid-registration-token' || 
           error.code === 'messaging/registration-token-not-registered') {
