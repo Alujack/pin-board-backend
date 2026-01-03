@@ -277,10 +277,33 @@ export const notificationService = {
    */
   async registerFCMToken(userId: string, fcmToken: string): Promise<void> {
     try {
-      await userModel.findByIdAndUpdate(userId, { fcm_token: fcmToken });
-      console.log('✅ FCM token registered for user:', userId);
+      console.log('📝 Registering FCM token:', {
+        userId,
+        tokenPreview: fcmToken.substring(0, 20) + '...',
+        tokenLength: fcmToken.length
+      });
+      
+      const updatedUser = await userModel.findByIdAndUpdate(
+        userId, 
+        { fcm_token: fcmToken },
+        { new: true }
+      );
+      
+      if (!updatedUser) {
+        throw new Error(`User not found: ${userId}`);
+      }
+      
+      console.log('✅ FCM token registered successfully for user:', {
+        userId,
+        username: updatedUser.username,
+        hasToken: !!updatedUser.fcm_token
+      });
     } catch (error: any) {
-      console.error('❌ Error registering FCM token:', error);
+      console.error('❌ Error registering FCM token:', {
+        userId,
+        error: error.message,
+        stack: error.stack
+      });
       throw error;
     }
   },

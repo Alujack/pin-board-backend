@@ -13,13 +13,32 @@ export const notificationController = {
    */
   async registerFCMToken(data: RegisterFCMTokenRequest, context: any) {
     try {
-      const userId = context.user._id;
-      await notificationService.registerFCMToken(userId, data.fcm_token);
+      const userId = context.user?._id;
+      if (!userId) {
+        throw new Error("User not authenticated");
+      }
+      
+      console.log('📥 FCM Token Registration Request:', {
+        userId: userId.toString(),
+        tokenPreview: data.fcm_token?.substring(0, 20) + '...',
+        tokenLength: data.fcm_token?.length
+      });
+      
+      await notificationService.registerFCMToken(userId.toString(), data.fcm_token);
+      
+      console.log('✅ FCM Token Registration Success:', {
+        userId: userId.toString()
+      });
+      
       return ResponseUtil.success(
-        { userId, registered: true },
+        { userId: userId.toString(), registered: true },
         "FCM token registered successfully"
       );
     } catch (error: any) {
+      console.error('❌ FCM Token Registration Error:', {
+        error: error.message,
+        userId: context.user?._id
+      });
       throw handleError(error);
     }
   },
