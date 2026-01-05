@@ -21,19 +21,13 @@ const zNotification = zModel.extend({
     content: z.string().min(1).max(500),
     is_read: z.boolean().default(false),
     // Optional metadata for navigation and additional context
-    metadata: z.object({
-        pin_id: z.string().optional(),
-        board_id: z.string().optional(),
-        user_id: z.string().optional(),
-        comment_id: z.string().optional(),
-        action: z.string().optional(),
-    }).optional(),
+    metadata: z.record(z.string(), z.any()).optional(), // Allow any key-value pairs
     created_at: z.date().default(() => new Date()),
-}).omit({ _id: true }).extend({
-    _id: zId().optional(),
-})
+}).omit({ _id: true }) // Completely omit _id from Zod schema - let Mongoose handle it
 
 const schema = zodSchema(zNotification, schemaOptions)
+// Mongoose automatically handles _id generation, so we don't need to modify it
+// The _id field is completely omitted from the Zod schema, so Mongoose will handle it natively
 const notificationModel = model("Notification", schema)
 export { zNotification, notificationModel };
 export type TypeNotification = z.infer<typeof zNotification>

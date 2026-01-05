@@ -29,7 +29,7 @@ export class SessionController {
 
     async getSessionById(sessionId: string) {
         try {
-            console.log("==>", sessionId)
+            // console.log("==>", sessionId)
             const session = await sessioinModel.findOne({
                 token: sessionId.toString(),
                 status: "active",

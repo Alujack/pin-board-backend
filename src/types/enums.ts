@@ -25,4 +25,5 @@ export enum InteractionTypeEnum {
     CLICK = "click",
     SAVE = "save",
     SHARE = "share",
+    COMMENT = "comment"
 }

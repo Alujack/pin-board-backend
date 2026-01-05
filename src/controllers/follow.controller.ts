@@ -1,8 +1,7 @@
 import { ORPCError } from "@orpc/client";
 import { followModel } from "../models/follow.model.js";
 import { userModel } from "../models/user.model.js";
-import { notificationModel } from "../models/notification.model.js";
-import { NotificationTypeEnum } from "../types/enums.js";
+import { notificationService } from "../services/notification.service.js";
 import { ObjectId } from "mongodb";
 
 export const followController = {
@@ -42,17 +41,16 @@ export const followController = {
                 following: followingId,
             });
 
-            // Create notification
-            await notificationModel.create({
-                _id: new ObjectId(),
-                user: followingId,
-                from_user: userId,
-                type: NotificationTypeEnum.NEW_FOLLOWER,
-                content: `${context.user.username} started following you`,
-                metadata: {
-                    user_id: userId.toString(),
-                },
-            });
+            // Send notification
+            try {
+                await notificationService.notifyNewFollower(
+                    followingId,
+                    context.user.username,
+                    userId.toString()
+                );
+            } catch (err) {
+                console.warn("Could not send follow notification", err);
+            }
 
             return {
                 success: true,
@@ -161,7 +159,7 @@ export const followController = {
     },
 
     // Check if user is following another user
-    async checkFollowing(followingId: string, context: any): Promise<{ success: boolean; isFollowing: boolean; followersCount: number; followingCount: number }> {
+    async checkFollowing(followingId: string, context: any): Promise<{ success: boolean; data: { following: boolean; status: string; followersCount: number; followingCount: number } }> {
         try {
             const userId = context.user?._id;
 
@@ -171,9 +169,25 @@ export const followController = {
             if (!userId) {
                 return {
                     success: true,
-                    isFollowing: false,
-                    followersCount,
-                    followingCount,
+                    data: {
+                        following: false,
+                        status: "not_following",
+                        followersCount,
+                        followingCount,
+                    }
+                };
+            }
+
+            // Check if checking own profile
+            if (userId.toString() === followingId.toString()) {
+                return {
+                    success: true,
+                    data: {
+                        following: false,
+                        status: "self",
+                        followersCount,
+                        followingCount,
+                    }
                 };
             }
 
@@ -184,9 +198,12 @@ export const followController = {
 
             return {
                 success: true,
-                isFollowing: !!follow,
-                followersCount,
-                followingCount,
+                data: {
+                    following: !!follow,
+                    status: !!follow ? "following" : "not_following",
+                    followersCount,
+                    followingCount,
+                }
             };
         } catch (error: any) {
             throw new ORPCError("INTERNAL_SERVER_ERROR", { message: error.message });

@@ -21,6 +21,10 @@ import {
   handleError,
 } from "../utils/error.util.js";
 import { ResponseUtil } from "../utils/response.util.js";
+import { InteractionTypeEnum } from "../types/enums.js";
+import { ORPCError } from "@orpc/client";
+import { interactionController } from "../controllers/index.js";
+import { ObjectId } from "mongodb";
 
 export const pinService = {
   /**
@@ -36,7 +40,14 @@ export const pinService = {
       const filter: any = {};
 
       if (query.board) {
-        filter.board = query.board;
+        // Ensure board ID is properly converted to ObjectId for filtering
+        // MongoDB/Mongoose can handle string to ObjectId conversion, but being explicit ensures correctness
+        try {
+          filter.board = new ObjectId(query.board);
+        } catch (e) {
+          // If ObjectId conversion fails, use the string as-is (Mongoose will handle it)
+          filter.board = query.board;
+        }
       }
 
       if (query.user) {
@@ -79,7 +90,8 @@ export const pinService = {
         ])
         .sort(sort)
         .skip(skip)
-        .limit(limit);
+        .limit(limit)
+        .select("-pin_vector")
 
       // Fetch media and like information for each pin
       const pinsWithData = await Promise.all(
@@ -120,13 +132,14 @@ export const pinService = {
    */
   async getPinById(
     id: string,
-    userId?: string
+    userId: string
   ): Promise<{ success: boolean; message: string; data: PinResponse }> {
     try {
+      // console.log("userId ==> ",userId, id)
       const pin = await pinModel.findById(id).populate([
         { path: "user", select: "username profile_picture" },
         { path: "board", select: "name is_public" },
-      ]);
+      ]).select("-pin_vector");
 
       if (!pin) {
         throw new NotFoundError("Pin not found");
@@ -134,7 +147,7 @@ export const pinService = {
 
       // Fetch media for the pin
       const media = await mediaService.getMediaByPinId(pin._id.toString());
-      
+
       // Fetch like information
       const likesCount = await pinLikeModel.countDocuments({ pin: pin._id });
       let isLiked = false;
@@ -142,7 +155,68 @@ export const pinService = {
         const likeDoc = await pinLikeModel.findOne({ pin: pin._id, user: userId });
         isLiked = !!likeDoc;
       }
-      
+
+      const inter = await interactionModel.findOne({
+        pin: id, user: userId
+      })
+
+      if (inter) {
+        if (!inter.interactionType.includes(InteractionTypeEnum.CLICK)) {
+          try {
+            await interactionModel.updateOne({
+              _id: inter._id
+            }, {
+              $push: {
+                interactionType: InteractionTypeEnum.CLICK
+              }
+            })
+          } catch (err: any) {
+            throw new ORPCError(err)
+          }
+          
+        }
+      } else {
+        await interactionController.createOne({pin: id, interactionType: [InteractionTypeEnum.CLICK]}, userId)
+      }
+
+      const pinWithData = {
+        ...pin.toObject(),
+        media,
+        likesCount,
+        isLiked,
+        inter
+      };
+
+      return ResponseUtil.success(
+        pinWithData as unknown as PinResponse,
+        "Pin retrieved successfully"
+      );
+    } catch (error: any) {
+      throw handleError(error);
+    }
+  },
+
+  async getPinByIdPersonalize(
+    id: string,
+  ): Promise<{ success: boolean; message: string; data: PinResponse }> {
+    try {
+      // console.log("userId ==> ",userId, id)
+      const pin = await pinModel.findById(id).populate([
+        { path: "user", select: "username profile_picture" },
+        { path: "board", select: "name is_public" },
+      ]).select("-pin_vector");
+
+      if (!pin) {
+        throw new NotFoundError("Pin not found");
+      }
+
+      // Fetch media for the pin
+      const media = await mediaService.getMediaByPinId(pin._id.toString());
+
+      // Fetch like information
+      const likesCount = await pinLikeModel.countDocuments({ pin: pin._id });
+      let isLiked = false;
+
       const pinWithData = {
         ...pin.toObject(),
         media,
@@ -369,7 +443,8 @@ export const pinService = {
               pinId,
               pin.title || 'Untitled Pin',
               pin.user.toString(),
-              saver.username
+              saver.username,
+              userId
             );
           }
         } catch (err) {

@@ -1,3 +1,4 @@
+import path from "path";
 import { interactionModel } from "../models/interaction.model.js";
 import { InteractionTypeEnum } from "../types/enums.js";
 import { TypeCreateInteraction, TypeUpdateInteraction, TypeUpdateInteractionType } from "../types/interaction.type.js";
@@ -5,11 +6,22 @@ import { handleError } from "../utils/error.util.js";
 import { ObjectId } from "mongodb";
 
 export class InteractionController {
+
+
+    async getAllInteraction() {
+        try {
+            const results = await interactionModel.find().populate("user")
+            return results
+        } catch (err: any) {
+            throw handleError(err)
+        }
+    }
+
     async getAll(userID: string) {
         try { 
             const interactions = await interactionModel.find({
                 user: userID
-            })
+            }).populate("user")
             return {
                 total: interactions.length,
                 list: interactions

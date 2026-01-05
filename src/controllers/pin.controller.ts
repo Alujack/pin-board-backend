@@ -50,7 +50,8 @@ export const pinController = {
   // Get a single pin by ID
   async getPinById(id: string, context: any): Promise<{ success: boolean; message: string; data: PinResponse }> {
     try {
-      return await pinService.getPinById(id, context.user?._id);
+      const user = context.user
+      return await pinService.getPinById(id, user._id);
     } catch (error: any) {
       throw handleError(error);
     }

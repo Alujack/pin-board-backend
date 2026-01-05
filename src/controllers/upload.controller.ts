@@ -79,7 +79,7 @@ export const uploadController = {
       // Validate request body
       const { board, title, description, link_url } = req.body;
       
-      console.log("==> ", title)
+      // console.log("==> ", title)
       if (!board || !title) {
         return res.status(400).json({
           success: false,

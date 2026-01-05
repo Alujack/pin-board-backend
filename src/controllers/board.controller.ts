@@ -1,10 +1,9 @@
 import { boardModel } from "../models/board.model.js";
 import { pinModel } from "../models/pin.model.js";
 import { mediaService } from "../services/media/media.service.js";
+import { pinService } from "../services/pin.service.js";
+import { PinQuery } from "../types/pin.type.js";
 import { 
-  createBoardRequestSchema, 
-  updateBoardRequestSchema,
-  boardQuerySchema,
   CreateBoardRequest,
   UpdateBoardRequest,
   BoardQuery,
@@ -298,6 +297,57 @@ export const boardController = {
         message: "User boards retrieved successfully",
         data: boardsWithPinCount as unknown as BoardResponse[],
       };
+    } catch (error: any) {
+      if (error instanceof ORPCError) {
+        throw error;
+      }
+      throw new ORPCError("INTERNAL_SERVER_ERROR", { message: error.message });
+    }
+  },
+
+  // Get pins by board ID
+  async getPinsByBoard(id: string, context: any): Promise<any> {
+    try {
+      // Verify board exists
+      const board = await boardModel.findById(id);
+      if (!board) {
+        throw new ORPCError("NOT_FOUND", { message: "Board not found" });
+      }
+
+      // Use pinService to get pins filtered by board ID
+      // Ensure the board ID is properly set for filtering
+      const query: PinQuery = {
+        board: id, // This will be used to filter pins by board ID
+        page: "1",
+        limit: "50",
+        sort: "newest"
+      };
+
+      const userId = context.user?._id;
+      const result = await pinService.getPins(query, userId);
+      
+      // Double-check: ensure all returned pins belong to this board
+      // This is a safety check to prevent any filtering issues
+      if (result.success && result.data && Array.isArray(result.data)) {
+        const filteredData = result.data.filter((pin: any) => {
+          // Handle both populated (object) and unpopulated (string/ObjectId) board fields
+          const pinBoardId = pin.board?._id?.toString() || pin.board?._id || pin.board?.toString() || pin.board;
+          const targetId = id.toString();
+          return pinBoardId === targetId;
+        });
+        
+        return {
+          ...result,
+          data: filteredData,
+          pagination: {
+            ...result.pagination,
+            total: filteredData.length,
+            totalPages: Math.ceil(filteredData.length / parseInt(query.limit || "50"))
+          }
+        };
+      }
+      
+      return result;
     } catch (error: any) {
       if (error instanceof ORPCError) {
         throw error;

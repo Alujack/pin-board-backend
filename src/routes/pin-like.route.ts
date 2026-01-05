@@ -1,4 +1,4 @@
-import { public_permission, protected_permission, ppr } from "../config/orpc.js";
+import { public_permission, ppr } from "../config/orpc.js";
 import { pinLikeController } from "../controllers/pin-like.controller.js";
 import z from "zod";
 

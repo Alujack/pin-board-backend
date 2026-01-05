@@ -1,9 +1,11 @@
 import { ORPCError } from "@orpc/client";
 import { pinLikeModel } from "../models/pin-like.model.js";
 import { pinModel } from "../models/pin.model.js";
-import { notificationModel } from "../models/notification.model.js";
-import { NotificationTypeEnum } from "../types/enums.js";
+import { notificationService } from "../services/notification.service.js";
+import { InteractionTypeEnum } from "../types/enums.js";
 import { ObjectId } from "mongodb";
+import { interactionModel } from "../models/interaction.model.js";
+import { interactionController } from "./index.js";
 
 export const pinLikeController = {
     // Toggle like on a pin
@@ -28,6 +30,7 @@ export const pinLikeController = {
             if (existingLike) {
                 // Unlike - delete the like
                 await pinLikeModel.deleteOne({ _id: existingLike._id });
+                await interactionModel.deleteOne({ user: userId, pin: pinId })
             } else {
                 // Like - create new like
                 await pinLikeModel.create({
@@ -37,26 +40,43 @@ export const pinLikeController = {
                 });
                 isLiked = true;
 
-                // Create notification for pin owner (if not liking own pin)
+                // Update interaction tracking
+                try {
+                    const inter = await interactionModel.findOne({
+                        user: userId,
+                        pin: pinId,
+                    });
+                    if (inter) {
+                        if (!inter.interactionType.includes(InteractionTypeEnum.LIKE)) {
+                            inter.interactionType.push(InteractionTypeEnum.LIKE);
+                            await inter.save();
+                        }
+                    } else {
+                        await interactionController.createOne({pin: pinId, interactionType: [InteractionTypeEnum.CLICK]}, userId);
+                    }
+                } catch (err: any) {
+                    console.warn("Could not update interaction", err);
+                }
+
+                // Send notification for pin owner (if not liking own pin)
                 const pinUserId = typeof pin.user === 'object' && '_id' in pin.user ? pin.user._id : pin.user;
                 if (pinUserId.toString() !== userId.toString()) {
-                    await notificationModel.create({
-                        _id: new ObjectId(),
-                        user: pinUserId,
-                        from_user: userId,
-                        type: NotificationTypeEnum.PIN_LIKED,
-                        content: `${context.user.username} liked your pin`,
-                        metadata: {
-                            pin_id: pinId,
-                            user_id: userId.toString(),
-                        },
-                    });
+                    try {
+                        await notificationService.notifyPinLiked(
+                            pinId,
+                            pin.title || 'Untitled Pin',
+                            pinUserId.toString(),
+                            context.user.username,
+                            userId.toString()
+                        );
+                    } catch (err) {
+                        console.warn("Could not send pin liked notification", err);
+                    }
                 }
             }
 
             // Get total likes count
             const likesCount = await pinLikeModel.countDocuments({ pin: pinId });
-
             return {
                 success: true,
                 message: isLiked ? "Pin liked" : "Pin unliked",
@@ -106,9 +126,9 @@ export const pinLikeController = {
     async checkPinLiked(pinId: string, context: any): Promise<{ success: boolean; isLiked: boolean; likesCount: number }> {
         try {
             const userId = context.user?._id;
-            
+
             const likesCount = await pinLikeModel.countDocuments({ pin: pinId });
-            
+
             if (!userId) {
                 return {
                     success: true,

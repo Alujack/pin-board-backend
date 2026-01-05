@@ -14,7 +14,7 @@ export const databaseConnection = async () => {
         if(!connection) {
             console.log("couldn't connect to database")
         }
-        console.log("Connect to ", connection.connection.name, "successfully")
+        console.log("✅ Connect to", connection.connection.name, "successfully")
     } catch (error: any) {
             throw new ORPCError("BAD_REQUEST", {message:`missing environment variable ${error}`})
     }

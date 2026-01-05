@@ -48,6 +48,19 @@ export const boardRoute = {
       return await boardController.getBoardById(id, context);
     }),
 
+  // Get pins by board ID
+  getPinsByBoard: ppr([])
+    .route({
+      path: `${path}/:id/pins`,
+      method: "GET",
+      tags: tags
+    })
+    .input(pathIdZod)
+    .handler(async ({ input, context }) => {
+      const id = input.id;
+      return await boardController.getPinsByBoard(id, context);
+    }),
+
   // Update a board
   update: ppr([])
     .route({
