@@ -262,7 +262,7 @@ export const uploadService = {
       });
 
       const response = await axios.post(
-        `http://127.0.0.1:8000/vectorize-pins`,
+        `https://personalize.sla-ai.online/vectorize-pins`,
         formData,
         {
           headers: {
