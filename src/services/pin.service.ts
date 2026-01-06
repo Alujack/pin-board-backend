@@ -714,7 +714,11 @@ export const pinService = {
 
       // Compute cosine similarity scores
       const scored = allPins
-        .filter((pin) => pin.pin_vector != null)
+        .filter((pin) => 
+          pin.pin_vector && 
+          Array.isArray(pin.pin_vector) && 
+          pin.pin_vector.length === targetPin.pin_vector!.length
+        )
         .map((pin) => ({
           score: this.cosineSimilarity(targetPin.pin_vector!, pin.pin_vector!),
           pinId: pin._id,
@@ -722,7 +726,8 @@ export const pinService = {
 
       // Sort by similarity descending and take top 30 (to ensure at least 15 after filtering)
       scored.sort((a, b) => b.score - a.score);
-      const topIds = scored.slice(0, 30).map((item) => item.pinId);
+      const topScored = scored.slice(0, 30);
+      const topIds = topScored.map((item) => item.pinId);
 
       // Fetch pin documents for the top similar pins
       const relatedPins = await pinModel
@@ -732,6 +737,9 @@ export const pinService = {
           { path: "board", select: "name is_public" },
         ])
         .select("-pin_vector");
+
+      // Store scores in a map for quick lookup during enrichment
+      const scoreMap = new Map<string, number>(topScored.map(s => [s.pinId.toString(), s.score]));
 
       // Enrich with media, likes, and isLiked
       const enriched = await Promise.all(
@@ -743,17 +751,20 @@ export const pinService = {
             const likeDoc = await pinLikeModel.findOne({ pin: pin._id, user: userId });
             isLiked = !!likeDoc;
           }
-          return {
-            ...pin.toObject(),
-            media,
-            likesCount,
-            isLiked,
-          };
-        })
-      );
+            return {
+              ...pin.toObject(),
+              media,
+              likesCount,
+              isLiked,
+              similarityScore: scoreMap.get(pin._id.toString()) || 0
+            };
+          })
+        );
 
-      // Ensure at least 15 pins; if fewer, pad with recent pins (optional fallback)
-      let finalPins = enriched;
+        // Sort the enriched results by similarity score, since MongoDB's $in doesn't preserve order
+        let finalPins = enriched.sort((a, b) => (b as any).similarityScore - (a as any).similarityScore);
+
+        // Ensure at least 15 pins; if fewer, pad with recent pins (optional fallback)
       if (finalPins.length < 15) {
         const fallbackCount = 15 - finalPins.length;
         const fallbackPins = await pinModel
@@ -780,6 +791,7 @@ export const pinService = {
               media,
               likesCount,
               isLiked,
+              similarityScore: 0
             };
           })
         );
@@ -814,6 +826,7 @@ export const pinService = {
       magA += vecA[i] * vecA[i];
       magB += vecB[i] * vecB[i];
     }
-    return dot / (Math.sqrt(magA) * Math.sqrt(magB));
+    const magnitude = Math.sqrt(magA) * Math.sqrt(magB);
+    return magnitude === 0 ? 0 : dot / magnitude;
   },
 };
