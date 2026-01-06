@@ -39,7 +39,7 @@ export const pinRoute = {
     })
     .input(pinQuerySchema)
     .handler(async ({ input, context }:{input: any, context: any}) => {
-      return await pinController.getPins(input, context);
+      return await pinController.getPersonalizePins(input, context);
     }),
 
   // Get a single pin by ID
@@ -202,7 +202,20 @@ export const pinRoute = {
         tags: tags,
       })
       .input(pinQuerySchema)
-      .handler( async ({ input, context }) => {
-        return await pinController.getPins(input, context)
+      .handler( async ({ context }) => {
+        return await personalizeController.getPersonalizePins(context.user._id!, context);
+      }),
+
+    // Get pins related to a given pin using vector similarity
+    getRelated: ppr([])
+      .route({
+        path: `${path}/:id/related`,
+        method: "GET",
+        tags: tags,
       })
+      .input(pathIdZod)
+      .handler(async ({ input, context }) => {
+        const id = input.id;
+        return await pinController.getRelatedPins(id, context);
+      }),
 };

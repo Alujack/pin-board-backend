@@ -8,12 +8,21 @@ import {
 import { pinService } from "../services/pin.service.js";
 import { mediaService } from "../services/media/media.service.js";
 import { handleError } from "../utils/error.util.js";
+import { pinModel } from "../models/pin.model.js";
 
 export const pinController = {
   // Get pins with pagination and filtering
   async getPins(query: PinQuery, context: any): Promise<PinListResponse> {
     try {
       return await pinService.getPins(query, context.user?._id);
+    } catch (error: any) {
+      throw handleError(error);
+    }
+  },
+
+  async getPersonalizePins(query: PinQuery, context: any): Promise<PinListResponse> {
+    try {
+      return await pinService.getPinsPersonalize(query, context.user?._id);
     } catch (error: any) {
       throw handleError(error);
     }
@@ -125,5 +134,26 @@ async getCreatedPinsImageMedia(context: any) {
   } catch (error: any) {
     throw handleError(error);
   }
-}
+},
+
+async getAllPins() {
+  try {
+    const result = await pinModel.find({ }).select("-pin_vector")
+    return {
+      list: result,
+      total: result.length
+    }
+  } catch (err: any) {
+    throw handleError(err)
+  }
+},
+
+// Get pins related to a given pin using vector similarity
+async getRelatedPins(id: string, context: any): Promise<PinListResponse> {
+  try {
+    return await pinService.getRelatedPins(id, context.user?._id);
+  } catch (error: any) {
+    throw handleError(error);
+  }
+},
 };

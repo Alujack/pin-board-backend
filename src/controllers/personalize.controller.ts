@@ -1,7 +1,6 @@
 import { ORPCError } from "@orpc/client";
 import { interactionModel, TypeInteraction } from "../models/interaction.model.js";
 import { pinModel } from "../models/pin.model.js";
-import { ZodIntersection } from "zod/v4";
 import { pinController } from "./pin.controller.js";
 import { pinService } from "../services/pin.service.js";
 import { ResponseUtil } from "../utils/response.util.js";
@@ -139,9 +138,5 @@ export class PersonalizeControllr {
             averagePin[i] = total / validValues.length
         }
         return averagePin
-    }
-
-    sortScore(data: number[]) {
-        return
     }
 }
