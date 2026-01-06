@@ -23,7 +23,7 @@ import {
 import { ResponseUtil } from "../utils/response.util.js";
 import { InteractionTypeEnum } from "../types/enums.js";
 import { ORPCError } from "@orpc/client";
-import { interactionController } from "../controllers/index.js";
+import { interactionController, personalizeController } from "../controllers/index.js";
 
 export const pinService = {
   /**
@@ -118,6 +118,130 @@ export const pinService = {
       throw handleError(error);
     }
   },
+
+
+  async getPinsPersonalize(query: PinQuery, userId?: string): Promise<PinListResponse> {
+    try {
+      // Convert string parameters to numbers
+      const page = parseInt(query.page) || 1;
+      const limit = Math.min(parseInt(query.limit) || 10, 50); // Max 50 items per page
+
+      // Build filter object
+      const filter: any = {};
+
+      if (query.board) {
+        filter.board = query.board;
+      }
+
+      if (query.user) {
+        filter.user = query.user;
+      }
+
+      if (query.search) {
+        filter.$or = [
+          { title: { $regex: query.search, $options: "i" } },
+          { description: { $regex: query.search, $options: "i" } },
+        ];
+      }
+
+      // Build sort object
+      switch (query.sort) {
+        case "oldest":
+          break;
+        case "popular":
+          break;
+        default:
+      }
+
+      // Calculate pagination
+
+      // Get total count
+      const total = await pinModel.countDocuments(filter);
+
+      // Ask personalize controller for personalized pins (await result)
+      const personalized = await personalizeController.getPersonalizePins(
+        userId?.toString()!,
+        null
+      );
+
+      // Normalize personalize controller response to an array of pin docs/ids
+      let personalizedList: any[] = [];
+      if (Array.isArray(personalized)) personalizedList = personalized as any[];
+      else if (personalized && typeof personalized === "object" && Array.isArray((personalized as any).data)) personalizedList = (personalized as any).data;
+
+      // Enrich personalized pins with media, likes and isLiked to match getPins format
+      const pinsWithData = await Promise.all(
+        (personalizedList || []).map(async (p: any) => {
+          let pinDoc: any = p;
+          if (!pinDoc) return null;
+
+          // Personalize controller currently returns ResponseUtil-wrapped objects.
+          // Unwrap to the actual pin document/response payload before accessing _id.
+          if (
+            pinDoc &&
+            typeof pinDoc === "object" &&
+            (pinDoc as any).data &&
+            (pinDoc as any).data._id
+          ) {
+            pinDoc = (pinDoc as any).data;
+          }
+
+          // Some call sites may return { pinId } entries
+          if (pinDoc && typeof pinDoc === "object" && (pinDoc as any).pinId) {
+            pinDoc = (pinDoc as any).pinId;
+          }
+
+          // If personalize controller returned an id/string, fetch the pin doc
+          if (typeof pinDoc === "string" || !pinDoc._id) {
+            pinDoc = await pinModel
+              .findById(pinDoc)
+              .populate([
+                { path: "user", select: "username profile_picture" },
+                { path: "board", select: "name is_public" },
+              ])
+              .select("-pin_vector");
+          }
+
+          if (!pinDoc) return null;
+
+          const media = await mediaService.getMediaByPinId(pinDoc._id.toString());
+          const likesCount = await pinLikeModel.countDocuments({ pin: pinDoc._id });
+          let isLiked = false;
+          if (userId) {
+            const likeDoc = await pinLikeModel.findOne({ pin: pinDoc._id, user: userId });
+            isLiked = !!likeDoc;
+          }
+
+          return {
+            ...(
+              typeof pinDoc.toObject === "function" ? pinDoc.toObject() : pinDoc
+            ),
+            media,
+            likesCount,
+            isLiked,
+          };
+        })
+      );
+
+      const filteredPins = pinsWithData.filter((x: any) => x !== null);
+
+      return ResponseUtil.successWithPagination(
+        filteredPins as unknown as PinResponse[],
+        {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+        "Pins retrieved successfully"
+      );
+    } catch (error: any) {
+      throw handleError(error);
+    }
+  },
+
+
+  
 
   /**
    * Get a single pin by ID
@@ -563,5 +687,124 @@ export const pinService = {
     } catch (error: any) {
       throw handleError(error);
     }
+  },
+
+  /**
+   * Get pins related to a given pin using cosine similarity on pin vectors
+   */
+  async getRelatedPins(pinId: string, userId?: string): Promise<PinListResponse> {
+    try {
+      // Fetch the target pin and its vector
+      const targetPin = await pinModel.findById(pinId).select("pin_vector");
+      if (!targetPin || !targetPin.pin_vector) {
+        throw new NotFoundError("Pin not found or has no vector");
+      }
+
+      // Fetch all other pins with vectors (exclude the target pin)
+      const allPins = await pinModel.find({ _id: { $ne: pinId } }).select("pin_vector");
+
+      // Compute cosine similarity scores
+      const scored = allPins
+        .filter((pin) => pin.pin_vector != null)
+        .map((pin) => ({
+          score: this.cosineSimilarity(targetPin.pin_vector!, pin.pin_vector!),
+          pinId: pin._id,
+        }));
+
+      // Sort by similarity descending and take top 30 (to ensure at least 15 after filtering)
+      scored.sort((a, b) => b.score - a.score);
+      const topIds = scored.slice(0, 30).map((item) => item.pinId);
+
+      // Fetch pin documents for the top similar pins
+      const relatedPins = await pinModel
+        .find({ _id: { $in: topIds } })
+        .populate([
+          { path: "user", select: "username profile_picture" },
+          { path: "board", select: "name is_public" },
+        ])
+        .select("-pin_vector");
+
+      // Enrich with media, likes, and isLiked
+      const enriched = await Promise.all(
+        relatedPins.map(async (pin) => {
+          const media = await mediaService.getMediaByPinId(pin._id.toString());
+          const likesCount = await pinLikeModel.countDocuments({ pin: pin._id });
+          let isLiked = false;
+          if (userId) {
+            const likeDoc = await pinLikeModel.findOne({ pin: pin._id, user: userId });
+            isLiked = !!likeDoc;
+          }
+          return {
+            ...pin.toObject(),
+            media,
+            likesCount,
+            isLiked,
+          };
+        })
+      );
+
+      // Ensure at least 15 pins; if fewer, pad with recent pins (optional fallback)
+      let finalPins = enriched;
+      if (finalPins.length < 15) {
+        const fallbackCount = 15 - finalPins.length;
+        const fallbackPins = await pinModel
+          .find({ _id: { $nin: [pinId, ...finalPins.map((p) => p._id)] } })
+          .populate([
+            { path: "user", select: "username profile_picture" },
+            { path: "board", select: "name is_public" },
+          ])
+          .sort({ createdAt: -1 })
+          .limit(fallbackCount)
+          .select("-pin_vector");
+
+        const enrichedFallback = await Promise.all(
+          fallbackPins.map(async (pin) => {
+            const media = await mediaService.getMediaByPinId(pin._id.toString());
+            const likesCount = await pinLikeModel.countDocuments({ pin: pin._id });
+            let isLiked = false;
+            if (userId) {
+              const likeDoc = await pinLikeModel.findOne({ pin: pin._id, user: userId });
+              isLiked = !!likeDoc;
+            }
+            return {
+              ...pin.toObject(),
+              media,
+              likesCount,
+              isLiked,
+            };
+          })
+        );
+        finalPins = [...finalPins, ...enrichedFallback];
+      }
+
+      return ResponseUtil.successWithPagination(
+        finalPins as unknown as PinResponse[],
+        {
+          page: 1,
+          limit: finalPins.length,
+          total: finalPins.length,
+          totalPages: 1,
+        },
+        "Related pins retrieved successfully"
+      );
+    } catch (error: any) {
+      throw handleError(error);
+    }
+  },
+
+  /**
+   * Compute cosine similarity between two vectors (shared utility)
+   */
+  cosineSimilarity(vecA: number[], vecB: number[]): number {
+    let dot = 0;
+    let magA = 0;
+    let magB = 0;
+
+    for (let i = 0; i < vecA.length; i++) {
+      dot += vecA[i] * vecB[i];
+      magA += vecA[i] * vecA[i];
+      magB += vecB[i] * vecB[i];
+    }
+    return dot / (Math.sqrt(magA) * Math.sqrt(magB));
   },
 };

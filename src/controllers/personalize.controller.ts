@@ -1,7 +1,6 @@
 import { ORPCError } from "@orpc/client";
 import { interactionModel, TypeInteraction } from "../models/interaction.model.js";
 import { pinModel } from "../models/pin.model.js";
-import { ZodIntersection } from "zod/v4";
 import { pinController } from "./pin.controller.js";
 import { pinService } from "../services/pin.service.js";
 
@@ -17,6 +16,7 @@ export class PersonalizeControllr {
                     $ne: userId
                 }
             }).select('pin_vector')
+            console.log("all pins length", allPins.length)
             const interactions = await interactionModel.find({
                 user: userId,
             }).select("pin")
@@ -84,9 +84,5 @@ export class PersonalizeControllr {
             averagePin[i] = total / values.length
         }
         return averagePin
-    }
-
-    sortScore(data: number[]) {
-        return
     }
 }
