@@ -724,9 +724,9 @@ export const pinService = {
           pinId: pin._id,
         }));
 
-      // Sort by similarity descending and take top 30 (to ensure at least 15 after filtering)
+      // Sort by similarity descending and take top 15
       scored.sort((a, b) => b.score - a.score);
-      const topScored = scored.slice(0, 30);
+      const topScored = scored.slice(0, 15);
       const topIds = topScored.map((item) => item.pinId);
 
       // Fetch pin documents for the top similar pins
@@ -797,6 +797,9 @@ export const pinService = {
         );
         finalPins = [...finalPins, ...enrichedFallback];
       }
+
+      // Catch-all slice to ensure we return exactly 15 pins if possible
+      finalPins = finalPins.slice(0, 15);
 
       return ResponseUtil.successWithPagination(
         finalPins as unknown as PinResponse[],
