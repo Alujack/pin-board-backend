@@ -24,6 +24,7 @@ import { ResponseUtil } from "../utils/response.util.js";
 import { InteractionTypeEnum } from "../types/enums.js";
 import { ORPCError } from "@orpc/client";
 import { interactionController, personalizeController } from "../controllers/index.js";
+import { ObjectId } from "mongodb";
 
 export const pinService = {
   /**
@@ -39,7 +40,14 @@ export const pinService = {
       const filter: any = {};
 
       if (query.board) {
-        filter.board = query.board;
+        // Ensure board ID is properly converted to ObjectId for filtering
+        // MongoDB/Mongoose can handle string to ObjectId conversion, but being explicit ensures correctness
+        try {
+          filter.board = new ObjectId(query.board);
+        } catch (e) {
+          // If ObjectId conversion fails, use the string as-is (Mongoose will handle it)
+          filter.board = query.board;
+        }
       }
 
       if (query.user) {
@@ -559,7 +567,8 @@ export const pinService = {
               pinId,
               pin.title || 'Untitled Pin',
               pin.user.toString(),
-              saver.username
+              saver.username,
+              userId
             );
           }
         } catch (err) {

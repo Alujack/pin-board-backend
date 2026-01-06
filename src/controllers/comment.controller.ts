@@ -1,7 +1,7 @@
 import { ORPCError } from "@orpc/client";
 import { commentModel } from "../models/comment.model.js";
 import { pinModel } from "../models/pin.model.js";
-import { notificationModel } from "../models/notification.model.js";
+import { notificationService } from "../services/notification.service.js";
 import { InteractionTypeEnum, NotificationTypeEnum } from "../types/enums.js";
 import { ObjectId } from "mongodb";
 import {
@@ -13,6 +13,7 @@ import {
 } from "../types/comment.type.js";
 import { interactionModel } from "../models/interaction.model.js";
 import { interactionController } from "./index.js";
+import { notificationModel } from "../models/notification.model.js";
 
 export const commentController = {
     // Create a new comment
@@ -52,64 +53,56 @@ export const commentController = {
                 { path: "user", select: "username profile_picture" }
             ]);
 
+            // Update interaction tracking
             if (newComment) {
                 try {
                     const result = await interactionModel.findOne({
                         user: userId,
                         pin: pinId
-                    })
-                    if(result) {
+                    });
+                    if (result) {
                         await interactionModel.updateOne({
                             _id: result._id
                         }, {
                             $push: {
                                 interactionType: InteractionTypeEnum.COMMENT
                             }
-                        })
+                        });
                     } else {
-                        await interactionController.createOne({pin: pinId, interactionType: [InteractionTypeEnum.CLICK]}, userId)
+                        await interactionController.createOne({pin: pinId, interactionType: [InteractionTypeEnum.CLICK]}, userId);
                     }
                 } catch (err: any) {
-                    throw new ORPCError(err)
+                    console.warn("Could not update interaction", err);
                 }
             }
 
-            // Create notification for pin owner (if not commenting on own pin)
+            // Send notification for pin owner (if not commenting on own pin)
             const pinUserId = typeof pin.user === 'object' && '_id' in pin.user ? pin.user._id : pin.user;
-            if (pinUserId.toString() !== userId.toString()) {
-                await notificationModel.create({
-                    _id: new ObjectId(),
-                    user: pinUserId,
-                    from_user: userId,
-                    type: commentData.parent_comment ? NotificationTypeEnum.COMMENT_REPLIED : NotificationTypeEnum.PIN_COMMENTED,
-                    content: commentData.parent_comment 
-                        ? `${context.user.username} replied to your comment`
-                        : `${context.user.username} commented on your pin`,
-                    metadata: {
-                        pin_id: pinId,
-                        comment_id: newComment._id.toString(),
-                        user_id: userId.toString(),
-                    },
-                });
+            const isReply = !!commentData.parent_comment;
+            let parentCommentOwnerId: string | undefined;
+
+            // If it's a reply, get parent comment owner
+            if (isReply) {
+                const parentComment = await commentModel.findById(commentData.parent_comment);
+                if (parentComment) {
+                    parentCommentOwnerId = parentComment.user.toString();
+                }
             }
 
-            // If it's a reply, notify the parent comment author
-            if (commentData.parent_comment) {
-                const parentComment = await commentModel.findById(commentData.parent_comment);
-                if (parentComment && parentComment.user.toString() !== userId.toString()) {
-                    await notificationModel.create({
-                        _id: new ObjectId(),
-                        user: parentComment.user,
-                        from_user: userId,
-                        type: NotificationTypeEnum.COMMENT_REPLIED,
-                        content: `${context.user.username} replied to your comment`,
-                        metadata: {
-                            pin_id: pinId,
-                            comment_id: newComment._id.toString(),
-                            user_id: userId.toString(),
-                        },
-                    });
-                }
+            // Send notification using notification service
+            try {
+                await notificationService.notifyPinCommented(
+                    pinId,
+                    pin.title || 'Untitled Pin',
+                    pinUserId.toString(),
+                    context.user.username,
+                    userId.toString(),
+                    newComment._id.toString(),
+                    isReply,
+                    parentCommentOwnerId
+                );
+            } catch (err) {
+                console.warn("Could not send comment notification", err);
             }
 
             return {
